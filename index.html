@@ -49,7 +49,7 @@
   .me-card{padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);cursor:none;transition:background .2s;}
   .me-card:hover{background:var(--hover);}
 
-  .avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:none;transition:transform .2s;overflow:hidden;background:transparent;position:relative;}
+  .avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:none;transition:transform .2s;background:transparent;position:relative;}
   .avatar:hover{transform:scale(1.05);}
   .av-face{width:100%;height:100%;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:500;letter-spacing:1px;color:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35);}
   .av-face img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -113,6 +113,8 @@
   .msg.me{align-self:flex-end;background:#fff;border-radius:16px 16px 4px 16px;box-shadow:0 1px 3px rgba(0,0,0,.2);}
   .msg.them{background:rgba(255,255,255,.92);border-radius:16px 16px 16px 4px;box-shadow:0 1px 3px rgba(0,0,0,.2);}
   .msg .time{display:inline-block;font-size:10px;margin-left:8px;opacity:.5;letter-spacing:.5px;vertical-align:bottom;color:#555;font-family:var(--mono);}
+  .msg .msg-checks{display:inline-block;font-size:11px;margin-left:4px;vertical-align:bottom;color:#999;letter-spacing:-2px;font-family:var(--mono);opacity:.7;}
+  .msg .msg-checks.read{color:#2aabee;opacity:1;text-shadow:0 0 6px rgba(42,171,238,.35);}
   .msg .reply-ref{display:block;background:rgba(0,0,0,.08);padding:6px 10px;border-radius:8px;margin-bottom:6px;font-size:12px;border-left:3px solid #000;}
   .msg .reply-ref .reply-name{font-weight:600;color:#000;}
   .msg .reply-ref .reply-text{opacity:.7;margin-top:2px;}
@@ -264,9 +266,18 @@
 
   /* ===== ЗВОНОК С ВИДЕО ===== */
   #callScreen{position:fixed;inset:0;z-index:300;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;animation:fade-in .25s ease;overflow:hidden;}
-  .call-video-bg{position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center;}
+  .call-water{position:absolute;inset:-22%;z-index:1;filter:blur(34px) saturate(1.6);opacity:.72;pointer-events:none;overflow:hidden;}
+  .call-water .w-layer{position:absolute;inset:0;will-change:transform;}
+  .wl-1{background:radial-gradient(ellipse at 22% 18%,rgba(74,222,128,.55),transparent 55%),radial-gradient(ellipse at 82% 32%,rgba(42,171,238,.5),transparent 55%),radial-gradient(ellipse at 48% 92%,rgba(248,113,113,.45),transparent 60%);animation:water-drift 13s ease-in-out infinite alternate;}
+  .wl-2{background:radial-gradient(ellipse at 78% 68%,rgba(168,85,247,.5),transparent 55%),radial-gradient(ellipse at 12% 82%,rgba(52,211,153,.5),transparent 55%),radial-gradient(ellipse at 92% 12%,rgba(251,191,36,.45),transparent 55%);animation:water-drift 17s ease-in-out infinite alternate-reverse;}
+  .wl-3{background:conic-gradient(from 0deg at 50% 50%,transparent,rgba(255,255,255,.14),transparent 25%,rgba(255,255,255,.1) 45%,transparent 60%,rgba(255,255,255,.08) 80%,transparent);animation:water-spin 20s linear infinite;mix-blend-mode:overlay;}
+  .call-water::after{content:"";position:absolute;inset:0;background-image:radial-gradient(1.5px 1.5px at 20% 30%,rgba(255,255,255,.35),transparent),radial-gradient(1px 1px at 70% 60%,rgba(255,255,255,.28),transparent);background-size:150px 150px,120px 120px;animation:water-spark 13s linear infinite;}
+  @keyframes water-drift{0%{transform:translate3d(-5%,-3%,0) scale(1) rotate(-4deg);}100%{transform:translate3d(5%,4%,0) scale(1.2) rotate(4deg);}}
+  @keyframes water-spin{to{transform:rotate(360deg);}}
+  @keyframes water-spark{from{background-position:0 0,0 0;}to{background-position:150px 150px,120px 120px;}}
+  .call-video-bg{position:absolute;inset:0;background:transparent;display:flex;align-items:center;justify-content:center;z-index:2;}
   #remoteVideo{width:100%;height:100%;object-fit:cover;background:#000;}
-  .call-video-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:radial-gradient(ellipse at center,#1a1a1a,#000);}
+  .call-video-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:transparent;}
   .call-avatar{width:110px;height:110px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;background:linear-gradient(135deg,#555,#222);overflow:hidden;animation:call-ring 1.4s ease-in-out infinite;}
   .call-avatar img{width:100%;height:100%;object-fit:cover;}
   @keyframes call-ring{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.4);}50%{box-shadow:0 0 0 24px rgba(255,255,255,0);}}
@@ -407,6 +418,8 @@
   }
 
   .ver-badge{width:14px;height:14px;display:inline-block;vertical-align:-2px;margin-left:4px;flex-shrink:0;filter:drop-shadow(0 0 5px rgba(42,171,238,.7));}
+  .av-ver{position:absolute;right:-4px;bottom:-4px;width:16px;height:16px;border-radius:50%;background:#0a0a0a;box-shadow:0 0 0 2px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:3;}
+  .av-ver svg{width:11px;height:11px;display:block;}
   .msg-author{display:block;font-size:11px;font-weight:700;letter-spacing:.4px;color:#2aabee;margin-bottom:3px;}
   .msg-author .ver-badge{width:11px;height:11px;vertical-align:-1px;margin-left:2px;}
   .cs-owner{font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px;text-align:center;}
@@ -687,6 +700,7 @@
 </div>
 
 <div id="callScreen" class="hidden">
+  <div class="call-water"><div class="w-layer wl-1"></div><div class="w-layer wl-2"></div><div class="w-layer wl-3"></div></div>
   <div class="call-video-bg">
     <video id="remoteVideo" autoplay playsinline></video>
     <div class="call-video-placeholder" id="callPlaceholder">
@@ -873,6 +887,7 @@ let currentChat=null, currentTab='all', replyTo=null, createType='private';
 let profileRef=null, OLD_IDS=new Set();
 let tickCount=0, msgsUnsubscribe=null;
 let allUsersCache={};
+let usersCacheT=0;
 let unread={};
 let lastSeenMsg={};
 
@@ -904,6 +919,7 @@ async function refreshUsersCache(){
   const snapshot=await getDocs(collection(db,'users'));
   allUsersCache={};
   snapshot.forEach(d=>{ const data=d.data(); allUsersCache[d.id]={id:Number(data.id!=null?data.id:d.id),...data}; });
+  usersCacheT=Date.now();
 }
 async function recomputeOld(){ await refreshUsersCache(); const users=Object.values(allUsersCache).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)); OLD_IDS=new Set(users.slice(0,10).map(x=>x.id)); }
 async function getUserFresh(id){
@@ -930,6 +946,7 @@ function renderAvatar(el,user,opts={}){
   else { face.textContent=initials; face.style.background=grad; }
   el.appendChild(face);
   if(opts.frame!==false && user.id!=null){ const fc=appliedFrameClass(user); if(fc) fc.split(' ').forEach(c=>el.classList.add(c)); }
+  if(user.verified===true||(user.id!=null&&VERIFIED_IDS.has(Number(user.id)))){ const vb=document.createElement('span'); vb.className='av-ver'; vb.innerHTML=vBadge(); el.appendChild(vb); }
 }
 
 const generateId=()=>Math.floor(100000+Math.random()*900000);
@@ -937,7 +954,7 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
 function formatTime(ts){ const d=new Date(ts), n=new Date(); return d.toDateString()===n.toDateString()?d.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('ru',{day:'2-digit',month:'short'}); }
 
 // ===== ВЕРИФИКАЦИЯ =====
-const VERIFIED_IDS=new Set([49046,388268,827760]);
+const VERIFIED_IDS=new Set([49046,388268,827760,490465]);
 function isVerified(user){ return !!(user&&(user.verified===true||VERIFIED_IDS.has(Number(user.id)))); }
 function vBadge(){ return '<svg class="ver-badge" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#2aabee"/><path d="M8.2 12.4l2.5 2.5 5-5.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
 function badgeFor(user){ return isVerified(user)?vBadge():''; }
@@ -1075,7 +1092,7 @@ document.getElementById('passModal').onclick=e=>{ if(e.target.id==='passModal'){
 
 function openApp(){
   document.getElementById('app').classList.remove('hidden');
-  document.getElementById('myNick').textContent=me.nick;
+  document.getElementById('myNick').innerHTML=escapeHtml(me.nick)+badgeFor(me);
   document.getElementById('myId').textContent='ID: '+me.id;
   renderAvatar(document.getElementById('myAvatar'),me);
   applyBackground(); renderList();
@@ -1118,6 +1135,7 @@ function startNotifListener(){
 }
 
 async function renderList(filter=''){
+  if(Date.now()-usersCacheT>15000) await refreshUsersCache();
   const list=document.getElementById('chatList'); list.innerHTML='<div class="empty-list">Загрузка...</div>';
   const q=query(collection(db,'chats'),where('members','array-contains',me.id));
   const snapshot=await getDocs(q);
@@ -1192,18 +1210,32 @@ async function openChat(chat){
 
 document.getElementById('backBtn').onclick=()=>{ document.getElementById('mainArea').classList.remove('active'); if(msgsUnsubscribe){msgsUnsubscribe();msgsUnsubscribe=null;} };
 
+let markReadThr=0;
+function markChatRead(arr){
+  if(!currentChat||document.hidden||!arr||!arr.length) return;
+  const now=Date.now(); if(now-markReadThr<600) return;
+  const meId=Number(me.id);
+  const toUpdate=arr.filter(m=>Number(m.from)!==meId&&!(m.readBy||[]).map(Number).includes(meId));
+  if(!toUpdate.length) return;
+  markReadThr=now;
+  toUpdate.forEach(m=>{ setDoc(doc(db,'chats',currentChat.id,'messages',m.id),{readBy:arrayUnion(meId)},{merge:true}).catch(()=>{}); });
+}
+
 function renderMessagesLive(arr){
+  markChatRead(arr);
   const box=document.getElementById('messages'); box.innerHTML='';
   arr.forEach(m=>{
     const sender=allUsersCache[m.from];
     const build=()=>{
       const isMe=m.from==me.id;
+      const read=isMe?(currentChat&&currentChat.type==='private'?((m.readBy||[]).map(Number).includes(peerOf(currentChat))):(((m.readBy||[]).length||0)>1)):false;
+      const timeHtml=`<span class="time">${formatTime(m.ts)}</span>`+(isMe?`<span class="msg-checks${read?' read':''}">${read?'✓✓':'✓'}</span>`:'');
       const replyHtml=m.replyTo?(()=>{ const rm=arr.find(x=>x.id===m.replyTo); if(!rm) return ''; const rs=allUsersCache[rm.from]; return `<div class="reply-ref"><div class="reply-name">${rs?escapeHtml(rs.nick):'Неизвестно'}</div><div class="reply-text">${emojiToHtml(rm.text.slice(0,100))}</div></div>`; })():'';
       const mediaHtml=m.sticker?`<img class="sticker-img" src="${m.sticker}" alt="стикер"/>`:(m.img?`<img class="msg-img" src="${m.img}" alt="фото"/>`:'');
       const el=document.createElement('div'); el.className=`msg ${isMe?'me':'them'} ${m.pinned?'pinned':''}`;
       const authorHtml=(!isMe&&currentChat&&currentChat.type!=='private'&&sender)?`<span class="msg-author">${escapeHtml(sender.nick||sender.name||'')}${badgeFor(sender)}</span>`:'';
-      el.innerHTML=`${authorHtml}${replyHtml}${mediaHtml}${m.text?emojiToHtml(m.text):''}<span class="time">${formatTime(m.ts)}</span>`;
-      const imgEl=el.querySelector('.msg-img'); if(imgEl) imgEl.onclick=()=>openLightbox(m.img);
+      el.innerHTML=`${authorHtml}${replyHtml}${mediaHtml}${m.text?emojiToHtml(m.text):''}${timeHtml}`;
+      const imgEl=el.querySelector('.msg-img'); if(imgEl) imgEl.onclick=e=>{ e.stopPropagation(); if(e.detail===0) return; openLightbox(m.img); };
 
       if(m.audio){
         const vwrap=document.createElement('div'); vwrap.className='voice-msg';
@@ -1317,7 +1349,7 @@ async function sendVoice(base64,dur){
   if(!currentChat) return;
   playSendSound();
   const ts=Date.now();
-  await addDoc(collection(db,'chats',currentChat.id,'messages'),{from:me.id,text:'',audio:base64,audioDur:dur,ts,pinned:false});
+  await addDoc(collection(db,'chats',currentChat.id,'messages'),{from:me.id,text:'',audio:base64,audioDur:dur,ts,pinned:false,readBy:[Number(me.id)]});
   await setDoc(doc(db,'chats',currentChat.id),{lastMessage:{text:'🎤 Голосовое',from:me.id,ts}},{merge:true});
   renderList(document.getElementById('searchInput').value);
 }
@@ -1337,7 +1369,7 @@ document.getElementById('composer').onsubmit=async e=>{
   if((!text&&!pendingImg)||!currentChat) return;
   playSendSound();
   const ts=Date.now();
-  const msgObj={from:me.id,text,ts,replyTo:replyTo?replyTo.id:null,pinned:false};
+  const msgObj={from:me.id,text,ts,replyTo:replyTo?replyTo.id:null,pinned:false,readBy:[Number(me.id)]};
   if(pendingImg) msgObj.img=pendingImg;
   await addDoc(collection(db,'chats',currentChat.id,'messages'),msgObj);
   await setDoc(doc(db,'chats',currentChat.id),{lastMessage:{text:text||'📷 Фото',from:me.id,ts}},{merge:true});
@@ -1465,7 +1497,7 @@ async function sendSticker(url){
   if(!currentChat) return;
   playSendSound();
   const ts=Date.now();
-  await addDoc(collection(db,'chats',currentChat.id,'messages'),{from:me.id,text:'',sticker:url,ts,pinned:false});
+  await addDoc(collection(db,'chats',currentChat.id,'messages'),{from:me.id,text:'',sticker:url,ts,pinned:false,readBy:[Number(me.id)]});
   await setDoc(doc(db,'chats',currentChat.id),{lastMessage:{text:'🎭 Стикер',from:me.id,ts}},{merge:true});
   toggleStickerPanel(false);
   renderList(document.getElementById('searchInput').value);
@@ -1539,7 +1571,7 @@ function stopCallTimer(){ if(callTimerInt){clearInterval(callTimerInt);callTimer
 function updateFloatTimer(){ if(callConnectedAt&&callMinimized){ const s=Math.floor((Date.now()-callConnectedAt)/1000); document.getElementById('floatTimer').textContent=formatDur(s); } }
 
 async function startCallMedia(wantVideo){
-  const vc={width:{ideal:1280},height:{ideal:720},frameRate:{ideal:30,max:60}};
+  const vc={width:{ideal:1280},height:{ideal:720},frameRate:{ideal:30,max:30}};
   const constraints={audio:{echoCancellation:true,noiseSuppression:true},video:wantVideo?vc:false};
   try{
     localStream=await navigator.mediaDevices.getUserMedia(constraints);
@@ -1574,7 +1606,7 @@ function playRemoteStream(stream){
 
 function pairDocId(a,b){ return Math.min(a,b)+'_'+Math.max(a,b); }
 
-function setVideoPrefs(p){ try{ p.getSenders().forEach(s=>{ if(s.track&&s.track.kind==='video'&&s.setParameters){ s.setParameters({degradationPreference:'maintain-resolution'}).catch(()=>{}); } }); }catch(e){} }
+function setVideoPrefs(p){ try{ p.getSenders().forEach(s=>{ if(s.track&&s.track.kind==='video'){ try{ const params=s.getParameters(); if(params.encodings&&params.encodings.length){ params.encodings[0].maxBitrate=2500000; params.encodings[0].maxFramerate=30; } params.degradationPreference='maintain-resolution'; s.setParameters(params); }catch(e){ s.setParameters({degradationPreference:'maintain-resolution'}).catch(()=>{}); } } }); }catch(e){} }
 
 function createPc(peerId){
   const p=new RTCPeerConnection(RTC_CONFIG);
@@ -1586,7 +1618,7 @@ function createPc(peerId){
     playRemoteStream(stream);
   };
   p.onconnectionstatechange=()=>{
-    if(p.connectionState==='connected'){ stopCallRing(); startCallTimer(); }
+    if(p.connectionState==='connected'){ setVideoPrefs(p); stopCallRing(); startCallTimer(); }
     else if(['failed','closed','disconnected'].includes(p.connectionState)){
       if(callType==='private') handleRemoteEnd('ended');
     }
@@ -1771,7 +1803,7 @@ async function toggleCamera(){
     showToast('Камера выключена','info');
   } else {
     try{
-      const vs=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:30,max:60}}});
+      const vs=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:30,max:30}}});
       const vt=vs.getVideoTracks()[0];
       localStream.addTrack(vt);
       for(const pid in peerSessions){
@@ -1793,33 +1825,46 @@ async function toggleCamera(){
 async function toggleScreen(){
   if(!callDocId) return;
   if(screenOn){
-    screenStream.getTracks().forEach(t=>t.stop());
+    try{ if(screenStream) screenStream.getTracks().forEach(t=>t.stop()); }catch(e){}
     const origTrack=localStream&&localStream.getVideoTracks()[0];
     for(const pid in peerSessions){
       const s=peerSessions[pid];
       const sender=s.pc.getSenders().find(snd=>snd.track&&snd.track.kind==='video');
-      if(sender&&origTrack) await sender.replaceTrack(origTrack);
-      else if(sender) s.pc.removeTrack(sender);
+      try{
+        if(sender&&origTrack) await sender.replaceTrack(origTrack);
+        else if(sender) s.pc.removeTrack(sender);
+      }catch(e){}
     }
     screenStream=null; screenOn=false;
     document.getElementById('screenBtn').classList.remove('active');
+    if(camOn){ document.getElementById('localVideo').srcObject=localStream; document.getElementById('localVideoWrap').classList.remove('hidden'); }
+    else { document.getElementById('localVideoWrap').classList.add('hidden'); document.getElementById('localVideo').srcObject=null; }
     showToast('Демонстрация остановлена','info');
   } else {
-    if(!camOn){ await toggleCamera(); if(!camOn){ showToast('Сначала включите камеру','error'); return; } }
+    let st=null;
     try{
-      screenStream=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'always'},audio:false});
-      const st=screenStream.getVideoTracks()[0];
-      for(const pid in peerSessions){
-        const s=peerSessions[pid];
-        const sender=s.pc.getSenders().find(snd=>snd.track&&snd.track.kind==='video');
+      const disp=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'always'},audio:false});
+      st=disp&&disp.getVideoTracks()[0];
+      if(!st) throw new Error('no-track');
+      screenStream=disp;
+    }catch(e){ screenStream=null; showToast('Демонстрация отменена','info'); return; }
+    const camTrack=localStream&&localStream.getVideoTracks()[0];
+    for(const pid in peerSessions){
+      const s=peerSessions[pid];
+      const sender=s.pc.getSenders().find(snd=>snd.track&&snd.track.kind==='video');
+      try{
         if(sender) await sender.replaceTrack(st);
-      }
-      for(const pid in peerSessions) setVideoPrefs(peerSessions[pid].pc);
-      st.onended=()=>{ if(screenOn) toggleScreen(); };
-      screenOn=true;
-      document.getElementById('screenBtn').classList.add('active');
-      showToast('Демонстрация экрана запущена','success');
-    }catch(e){ showToast('Демонстрация отменена','info'); }
+        else s.pc.addTrack(st,localStream);
+      }catch(e){}
+    }
+    for(const pid in peerSessions) setVideoPrefs(peerSessions[pid].pc);
+    st.onended=()=>{ if(screenOn) toggleScreen(); };
+    screenOn=true;
+    document.getElementById('screenBtn').classList.add('active');
+    document.getElementById('localVideoWrap').classList.remove('hidden');
+    document.getElementById('localVideo').srcObject=screenStream;
+    if(camTrack) try{ camTrack.enabled=false; }catch(e){}
+    showToast('Демонстрация экрана запущена','success');
   }
   renegotiateAll();
 }
@@ -2217,7 +2262,7 @@ function startStatusListener(){
     snap.forEach(d=>{ const s={id:d.id,...d.data()}; if(s.ts<(cutNow-60000)) return; const fid=Number(s.from); (statusMap[fid]=statusMap[fid]||[]).push(s); });
     for(const k in statusMap) statusMap[k].sort((a,b)=>a.ts-b.ts);
     renderStatusBar();
-  });
+  },err=>{ showToast('Не удалось загрузить статусы','error'); });
   refreshUsersCache().then(()=>renderStatusBar()).catch(()=>{});
 }
 function renderStatusBar(){
@@ -2250,7 +2295,7 @@ function renderStatusBar(){
 }
 
 // ---- РЕКОРДЕР ----
-let statusStream=null, statusRec=null, statusChunks=[], statusRecTimer=null, statusRecording=false, statusModalOpen=false, statusCancelled=false;
+let statusStream=null, statusRec=null, statusChunks=[], statusRecTimer=null, statusRecording=false, statusModalOpen=false, statusCancelled=false, statusRecStart=0;
 async function openStatusComposer(){
   if(statusModalOpen) return;
   statusModalOpen=true; statusCancelled=false;
@@ -2368,6 +2413,7 @@ function loadStatus(){
     video.src=g.media; video.classList.remove('hidden');
     video.play().catch(()=>showToast('Нажмите в любом месте для включения звука','info',3000));
     video.onended=()=>{ if(!svPaused) nextStatus(); };
+    startVideoTimer();
   } else {
     img.src=g.media; img.classList.remove('hidden');
     svLeft=5000; startImgTimer();
@@ -2379,7 +2425,6 @@ function loadStatus(){
   document.getElementById('svDelete').classList.toggle('hidden',g.from!==Number(me.id));
   renderSegments();
   if(g.from!==Number(me.id)) markViewed(g);
-  startVideoTimer();
 }
 function renderSegments(){
   document.getElementById('svSegments').innerHTML=svQueue.map((g,i)=>`<div class="sv-seg ${i<svPos?'done':(i===svPos?'cur':'')}"><span class="fill"></span></div>`).join('');
