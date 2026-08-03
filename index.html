@@ -262,6 +262,14 @@
   .acct-tag{font-size:9px;letter-spacing:2px;background:#fff;color:#000;padding:2px 8px;border-radius:10px;font-weight:600;}
   .limit-note{font-size:11px;color:var(--muted);letter-spacing:1px;padding:10px;border:1px dashed var(--line);border-radius:10px;text-align:center;}
 
+  .login-welcome{margin-bottom:18px;text-align:left;}
+  .lw-title{font-size:22px;font-weight:700;letter-spacing:3px;line-height:1.2;color:#fff;text-shadow:0 0 22px rgba(255,255,255,.3);}
+  .lw-wave{display:block;height:20px;margin-top:10px;overflow:visible;}
+  .lw-wave path{stroke:var(--green);stroke-width:3;stroke-linecap:round;fill:none;filter:drop-shadow(0 0 6px rgba(74,222,128,.55));}
+
+  .set-select{background:rgba(255,255,255,.06);border:1px solid var(--line);color:#fff;border-radius:10px;padding:8px 10px;font-size:12px;letter-spacing:1px;cursor:none;max-width:190px;}
+  .set-select option{background:#1a1a1a;color:#fff;}
+
   .frame-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:11px;letter-spacing:1px;margin:4px;border:1px solid;}
   .frame-chip.old{color:#ffe9a8;border-color:#d9a441;background:rgba(217,164,65,.12);}
   .frame-chip.time{color:#ededed;border-color:#888;background:rgba(255,255,255,.06);}
@@ -499,6 +507,7 @@
   .sv-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);color:#fff;cursor:none;display:flex;align-items:center;justify-content:center;font-size:14px;transition:background .2s,transform .2s;backdrop-filter:blur(6px);}
   .sv-btn:hover{background:rgba(255,255,255,.3);transform:scale(1.08);}
   .sv-btn.danger:hover{background:rgba(248,113,113,.5);}
+  .sv-btn.muted{color:rgba(255,255,255,.75);}
   .sv-media{width:100%;height:100%;object-fit:contain;animation:sv-in .3s ease;}
   @keyframes sv-in{from{opacity:0;transform:scale(1.04);}to{opacity:1;transform:scale(1);}}
   .sv-zone{position:absolute;top:0;bottom:0;width:34%;z-index:5;cursor:none;}
@@ -540,6 +549,15 @@
     <h2>SPHERE</h2>
     <p id="loginSubtitle">ВАШИ АККАУНТЫ</p>
     <div id="loginContent"></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="mapModal">
+  <div class="box box-ambient" style="max-width:660px;text-align:left;">
+    <h2 style="font-size:22px;letter-spacing:5px;margin-bottom:14px;">КАРТА ДРУЗЕЙ</h2>
+    <div id="mapContainer" style="width:100%;height:400px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#0b0b0b;"></div>
+    <div id="mapStatus" style="font-size:11px;letter-spacing:1px;color:var(--muted);margin:10px 0 4px;min-height:16px;"></div>
+    <button class="secondary" id="mapCloseBtn">ЗАКРЫТЬ</button>
   </div>
 </div>
 
@@ -591,8 +609,21 @@
         </div>
       </div>
     </div>
+    <div class="settings-section"><h3>ГЕОЛОКАЦИЯ</h3>
+      <div class="set-row"><span class="set-label">Кто видит меня на карте</span>
+        <select id="mapVisSel" class="set-select">
+          <option value="off">Никто</option>
+          <option value="friends">Только друзья</option>
+          <option value="custom">Выбрать вручную</option>
+          <option value="all">Все</option>
+        </select>
+      </div>
+      <div class="member-list hidden" id="mapCustomList"></div>
+      <div class="limit-note" style="margin-top:10px;">Ваша точка обновляется на карте, пока приложение открыто и разрешение не «Никто».</div>
+    </div>
     <button id="saveSettingsBtn">СОХРАНИТЬ</button>
     <button class="secondary" id="switchAccountBtn">СМЕНИТЬ АККАУНТ</button>
+    <button class="cs-danger" id="logoutBtn">ВЫЙТИ ИЗ АККАУНТА</button>
     <button class="secondary" id="closeSettingsBtn">ОТМЕНА</button>
   </div>
 </div>
@@ -709,6 +740,7 @@
       <div class="avatar" id="svAvatar">—</div>
       <div><div class="sv-name" id="svName">—</div><div class="sv-time" id="svTime">—</div></div>
       <div class="sv-head-actions">
+        <button class="sv-btn muted hidden" id="svSound" title="Звук">🔇</button>
         <button class="sv-btn danger hidden" id="svDelete" title="Удалить">🗑</button>
         <button class="sv-btn" id="svClose" title="Закрыть">✕</button>
       </div>
@@ -783,6 +815,7 @@
     <div class="sb-head">
       <div class="brand">SPHERE</div>
       <button class="icon-btn" id="friendsBtn" title="Друзья"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></button>
+      <button class="icon-btn" id="mapBtn" title="Карта"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg></button>
       <button class="icon-btn" id="createBtn" title="Создать"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
       <button class="icon-btn settings-btn" id="settingsBtn" title="Настройки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
@@ -837,7 +870,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, onSnapshot, query, where, orderBy, deleteDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, doc, setDoc, updateDoc, getDoc, getDocs, addDoc, onSnapshot, query, where, orderBy, deleteDoc, deleteField, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCWo1pLVVL9wZsxGde9I6-bxs_ieOi--Bc",
@@ -1033,15 +1066,27 @@ async function renderLoginList(){
 function renderLoginRegister(){
   document.getElementById('loginSubtitle').textContent='СОЗДАЙТЕ АККАУНТ';
   const content=document.getElementById('loginContent');
-  content.innerHTML=`<input type="text" id="nickInput" placeholder="ваш ник" maxlength="20" autocomplete="off"/><input type="password" id="passRegInput" placeholder="пароль (мин. 4 символа)" maxlength="40" autocomplete="off" style="margin-top:10px"/><button id="enterBtn">НАЧАТЬ</button><button class="secondary" id="backToListBtn">НАЗАД</button>`;
+  content.innerHTML=`<div class="login-welcome"><div class="lw-title">ДОБРО ПОЖАЛОВАТЬ<br>В SPHERE</div><svg id="lwWave" class="lw-wave" width="0" height="20"><path d="M0 10"/></svg></div><input type="text" id="nickInput" placeholder="ваш ник" maxlength="20" autocomplete="off"/><input type="password" id="passRegInput" placeholder="пароль (мин. 4 символа)" maxlength="40" autocomplete="off" style="margin-top:10px"/><button id="enterBtn">НАЧАТЬ</button><button class="secondary" id="backToListBtn">НАЗАД</button>`;
+  lwCur=0; lwTarget=0; lwRaf=null; lwApply(0);
   const submit=()=>register();
   document.getElementById('enterBtn').onclick=submit;
   const ni=document.getElementById('nickInput'), pi=document.getElementById('passRegInput');
+  ni.addEventListener('input',lwSync);
+  pi.addEventListener('input',lwSync);
   ni.addEventListener('keydown',e=>{ if(e.key==='Enter') submit(); });
   pi.addEventListener('keydown',e=>{ if(e.key==='Enter') submit(); });
   document.getElementById('backToListBtn').onclick=renderLoginList;
   setTimeout(()=>ni.focus(),300);
 }
+
+// ---- ВОЛНА РЕГИСТРАЦИИ ----
+let lwCur=0,lwTarget=0,lwRaf=null;
+const LW_MAX=340;
+function lwMeasure(t){ const c=document.createElement('canvas').getContext('2d'); c.font='600 14px Arial,sans-serif'; return Math.min(LW_MAX,c.measureText(t||'').width); }
+function lwPath(w){ const base=10,amp=4.5,wl=24; if(w<=1) return 'M0 '+base; let d='M0 '+base; for(let x=3;x<=w+0.01;x+=3){ const y=base+Math.sin(x*2*Math.PI/wl)*amp; d+=' L'+x.toFixed(1)+' '+y.toFixed(1); } return d; }
+function lwApply(w){ const el=document.getElementById('lwWave'); if(!el) return; el.setAttribute('width',w.toFixed(1)); el.querySelector('path').setAttribute('d',lwPath(w)); }
+function lwLoop(){ lwCur+=(lwTarget-lwCur)*0.16; if(Math.abs(lwTarget-lwCur)<0.4) lwCur=lwTarget; lwApply(lwCur); if(lwCur===lwTarget){ lwRaf=null; return; } lwRaf=requestAnimationFrame(lwLoop); }
+function lwSync(){ const ni=document.getElementById('nickInput'),pi=document.getElementById('passRegInput'); lwTarget=lwMeasure(((ni?ni.value:'')+(pi?pi.value:''))); if(!lwRaf) lwRaf=requestAnimationFrame(lwLoop); }
 
 function renderLoginById(){
   document.getElementById('loginSubtitle').textContent='ВОЙТИ В АККАУНТ';
@@ -1143,6 +1188,7 @@ function openApp(){
   startIncomingListener();
   startNotifListener();
   startStatusListener();
+  startGeoShare();
   requestNotifPermission();
   if(me&&!me.password){ setTimeout(()=>{ if(me&&!me.password) showPassModal('ПРИДУМАЙТЕ ПАРОЛЬ','Создайте пароль для вашего аккаунта',async pw=>{ me.password=await hashPass(pw); await persistMe(); showToast('Пароль установлен','success'); }); },700); }
 }
@@ -2381,6 +2427,30 @@ function openSettings(){
   const updSize=()=>sizeBtns.forEach(b=>b.classList.toggle('active',b.dataset.sz===prefs.msgSize));
   sizeBtns.forEach(b=>b.onclick=()=>{ prefs.msgSize=b.dataset.sz; updSize(); });
   updSize();
+  const visSel=document.getElementById('mapVisSel');
+  const mapCustom=document.getElementById('mapCustomList');
+  let mapVis=me.mapVis||'off';
+  let mapVisList=new Set(Array.isArray(me.mapVisList)?me.mapVisList.map(Number):[]);
+  visSel.value=mapVis;
+  function renderMapCustom(){
+    mapCustom.classList.toggle('hidden',visSel.value!=='custom');
+    if(visSel.value!=='custom') return;
+    mapCustom.innerHTML='';
+    const myId=Number(me.id);
+    const friends=(me.friends||[]).map(Number).filter(f=>f!==myId);
+    if(!friends.length){ mapCustom.innerHTML='<div class="limit-note">Нет друзей для выбора</div>'; return; }
+    friends.forEach(fid=>{
+      const u=allUsersCache[fid];
+      const row=document.createElement('label');
+      row.className='member-item';
+      row.innerHTML=`<div class="avatar" style="width:30px;height:30px;font-size:12px"></div><span style="flex:1;font-size:13px;color:#fff">${u?escapeHtml(u.nick||u.name):('#'+fid)}</span><input type="checkbox" ${mapVisList.has(fid)?'checked':''}/>`;
+      renderAvatar(row.querySelector('.avatar'),u||{nick:'#'+fid});
+      row.querySelector('input').onchange=e=>{ if(e.target.checked) mapVisList.add(fid); else mapVisList.delete(fid); };
+      mapCustom.appendChild(row);
+    });
+  }
+  visSel.onchange=renderMapCustom;
+  renderMapCustom();
   function renderFrames(){
     frameGrid.innerHTML='';
     FRAME_CATALOG.forEach(cat=>{
@@ -2416,16 +2486,163 @@ function openSettings(){
     me.frameChoice=(temp.frameChoice!=='none'&&FRAME_CATALOG.find(c=>c.id===temp.frameChoice)&&FRAME_CATALOG.find(c=>c.id===temp.frameChoice).req(me))?temp.frameChoice:'none';
     me.bgChoice=temp.bgChoice;
     me.prefs=prefs;
+    me.mapVis=visSel.value;
+    me.mapVisList=me.mapVis==='custom'?[...mapVisList]:[];
+    if(me.mapVis==='off'){ me.loc=null; updateDoc(doc(db,'users',me.id.toString()),{loc:deleteField()}).catch(()=>{}); }
     await persistMe(); renderAvatar(document.getElementById('myAvatar'),me); applyBackground(); renderList();
     const nickEl=document.getElementById('myNick');
     if(nickEl) nickEl.innerHTML=escapeHtml(me.nick||me.name||'')+badgeFor(me);
     applySettings();
+    startGeoShare();
     closeModal('settingsModal'); playSuccessSound(); showToast('Настройки сохранены','success');
   };
   document.getElementById('switchAccountBtn').onclick=()=>{ localStorage.removeItem(LS_ME); location.reload(); };
+  document.getElementById('logoutBtn').onclick=logoutAccount;
   updPrev(); updBgPrev(); renderFrames(); renderBgs();
   openModal('settingsModal');
 }
+
+// ===== ВЫХОД ИЗ АККАУНТА =====
+function logoutAccount(){
+  if(callDocId) endCall();
+  if(chatsNotifUnsub) chatsNotifUnsub();
+  if(msgsUnsubscribe) msgsUnsubscribe();
+  if(incomingUnsub) incomingUnsub();
+  if(statusesUnsub) statusesUnsub();
+  if(callUnsub) callUnsub();
+  if(candUnsub) candUnsub();
+  if(mapRefreshTimer){ clearInterval(mapRefreshTimer); mapRefreshTimer=null; }
+  if(geoShareTimer){ clearInterval(geoShareTimer); geoShareTimer=null; }
+  if(mapWatchId!=null){ try{ navigator.geolocation.clearWatch(mapWatchId); }catch(e){} mapWatchId=null; }
+  closeModal('settingsModal'); closeModal('passModal'); closeModal('mapModal');
+  if(statusModalOpen) closeStatusRec();
+  const sv=document.getElementById('statusViewer'); if(sv) sv.classList.add('hidden');
+  msgEls={}; currentChat=null;
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('chatView').classList.add('hidden');
+  document.getElementById('emptyState').classList.remove('hidden');
+  localStorage.removeItem(LS_ME);
+  me=null;
+  showLogin();
+}
+
+// ===== ЯНДЕКС КАРТЫ =====
+const YANDEX_API_KEY='';
+let ymap=null, ymapScriptLoaded=false, mapRefreshTimer=null, mapWatchId=null, mapFriendPms=[];
+let geoShareTimer=null;
+function mapVisibleToMe(f){
+  const v=f.mapVis||'off';
+  if(v==='off') return false;
+  if(v==='all') return true;
+  if(v==='friends') return (f.friends||[]).map(Number).includes(Number(me.id));
+  if(v==='custom') return (f.mapVisList||[]).map(Number).includes(Number(me.id));
+  return false;
+}
+function mapColor(u){ const pal=['#f472b6','#fb923c','#facc15','#4ade80','#22d3ee','#a78bfa']; const id=Number(u&&u.id)||0; return pal[((id%pal.length)+pal.length)%pal.length]; }
+function mapAvatarUrl(u){
+  if(u&&u.avatarImg) return u.avatarImg;
+  const letter=((u&&(u.nick||u.name))||'?').trim()[0].toUpperCase()||'?';
+  const col=mapColor(u);
+  return 'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' rx='24' fill='${col}'/><text x='24' y='30' font-family='Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='#fff'>${letter}</text></svg>`);
+}
+function mapPinData(u,isMe){
+  const letter=((u&&(u.nick||u.name))||'?').trim()[0].toUpperCase()||'?';
+  let c1,c2;
+  if(isMe){ c1='#38bdf8'; c2='#1d4ed8'; }
+  else { const pals=[['#f472b6','#be185d'],['#fb923c','#c2410c'],['#facc15','#a16207'],['#4ade80','#15803d'],['#22d3ee','#0e7490'],['#a78bfa','#6d28d9']]; const id=Number(u&&u.id)||0; const h=((id%pals.length)+pals.length)%pals.length; c1=pals[h][0]; c2=pals[h][1]; }
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='52' viewBox='0 0 40 52'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='${c1}'/><stop offset='1' stop-color='${c2}'/></linearGradient></defs><path d='M20 1C10.1 1 2 9.1 2 19c0 12.7 18 32 18 32s18-19.3 18-32C38 9.1 29.9 1 20 1z' fill='url(#g)' stroke='rgba(255,255,255,.55)' stroke-width='1.5'/><circle cx='20' cy='19' r='9.5' fill='rgba(255,255,255,.25)'/><text x='20' y='24.5' font-family='Arial,sans-serif' font-size='13' font-weight='700' text-anchor='middle' fill='#fff'>${letter}</text></svg>`;
+  return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
+}
+function publishLoc(lat,lng){
+  if(!me) return;
+  if((me.mapVis||'off')==='off'){ me.loc=null; try{ updateDoc(doc(db,'users',me.id.toString()),{loc:deleteField()}).catch(()=>{}); }catch(e){} return; }
+  me.loc={lat,lng,ts:Date.now()};
+  updateDoc(doc(db,'users',me.id.toString()),{loc:me.loc}).catch(()=>{});
+}
+function startGeoShare(){
+  if(geoShareTimer){ clearInterval(geoShareTimer); geoShareTimer=null; }
+  if(!me||(me.mapVis||'off')==='off') return;
+  const once=()=>{ if(!me||(me.mapVis||'off')==='off') return; navigator.geolocation.getCurrentPosition(p=>publishLoc(p.coords.latitude,p.coords.longitude),()=>{},{enableHighAccuracy:false,timeout:10000,maximumAge:60000}); };
+  once();
+  geoShareTimer=setInterval(once,60000);
+}
+function loadYandexMaps(){
+  return new Promise((resolve,reject)=>{
+    if(typeof ymaps!=='undefined'){ ymaps.ready(resolve); return; }
+    if(ymapScriptLoaded){ const t=setInterval(()=>{ if(typeof ymaps!=='undefined'){ clearInterval(t); ymaps.ready(resolve); } },100); return; }
+    ymapScriptLoaded=true;
+    const s=document.createElement('script');
+    s.src='https://api-maps.yandex.ru/2.1/?apikey='+YANDEX_API_KEY+'&lang=ru_RU';
+    s.onload=()=>ymaps.ready(resolve);
+    s.onerror=()=>{ ymapScriptLoaded=false; reject(new Error('Не удалось загрузить Яндекс.Карты')); };
+    document.head.appendChild(s);
+  });
+}
+async function openMap(){
+  openModal('mapModal');
+  const st=document.getElementById('mapStatus');
+  if(!YANDEX_API_KEY){ st.textContent='Добавьте ключ Яндекс.Карт: укажите YANDEX_API_KEY в коде.'; st.style.color='var(--red)'; return; }
+  st.textContent='Загрузка карты…'; st.style.color='var(--muted)';
+  try{ await loadYandexMaps(); initMap(); }
+  catch(e){ st.textContent=e.message||'Ошибка загрузки карты'; st.style.color='var(--red)'; }
+}
+function initMap(){
+  const container=document.getElementById('mapContainer');
+  const st=document.getElementById('mapStatus');
+  if(ymap){ try{ ymap.destroy(); }catch(e){} ymap=null; }
+  st.textContent='Определяем ваше местоположение…'; st.style.color='var(--muted)';
+  let mePm=null;
+  const done=(lat,lng)=>{
+    ymap=new ymaps.Map(container,{center:[lat,lng],zoom:12},{});
+    ymap.controls.add('zoomControl');
+    mePm=new ymaps.Placemark([lat,lng],{hintContent:'Вы',balloonContent:'<div style="font-family:Arial;font-size:13px;color:#111;min-width:110px"><b>Вы</b><br><span style="font-size:11px;color:#666">Это ваша точка</span></div>'},{iconLayout:'default#image',iconImageHref:mapPinData(me,true),iconImageSize:[40,52],iconImageOffset:[-20,-52]});
+    ymap.geoObjects.add(mePm);
+    publishLoc(lat,lng);
+    renderMapFriends();
+    if(mapRefreshTimer) clearInterval(mapRefreshTimer);
+    mapRefreshTimer=setInterval(()=>{
+      if(!ymap) return;
+      navigator.geolocation.getCurrentPosition(p=>{
+        const la=p.coords.latitude,lo=p.coords.longitude;
+        publishLoc(la,lo);
+        if(mePm&&ymap){ try{ mePm.geometry.setCoordinates([la,lo]); }catch(e){} ymap.setCenter([la,lo],ymap.getZoom(),{duration:400}); }
+      },()=>{},{enableHighAccuracy:false,timeout:10000,maximumAge:60000});
+      refreshUsersCache().then(()=>{ if(ymap) renderMapFriends(); }).catch(()=>{});
+    },30000);
+    st.textContent='Друзья на карте обновляются каждые 30 секунд';
+  };
+  navigator.geolocation.getCurrentPosition(p=>done(p.coords.latitude,p.coords.longitude),()=>done(55.7558,37.6173),{enableHighAccuracy:true,timeout:12000,maximumAge:30000});
+}
+function renderMapFriends(){
+  if(!ymap) return;
+  for(const pm of mapFriendPms){ try{ ymap.geoObjects.remove(pm); }catch(e){} }
+  mapFriendPms=[];
+  const myId=Number(me.id);
+  const friends=(me.friends||[]).map(Number).filter(f=>f!==myId);
+  const now=Date.now();
+  for(const fid of friends){
+    const f=allUsersCache[fid];
+    if(!f||!f.loc||typeof f.loc.lat!=='number') continue;
+    if(now-(f.loc.ts||0)>6*3600*1000) continue;
+    if(!mapVisibleToMe(f)) continue;
+    const name=f.nick||f.name||('#'+fid);
+    const pm=new ymaps.Placemark([f.loc.lat,f.loc.lng],{
+      hintContent:name,
+      balloonContent:`<div style="font-family:Arial;font-size:13px;color:#111;min-width:150px"><div style="display:flex;align-items:center;gap:8px"><img src="${mapAvatarUrl(f)}" width="30" height="30" style="border-radius:50%;object-fit:cover"> <b>${escapeHtml(name)}</b></div><div style="font-size:11px;color:#666;margin-top:5px">${badgeFor(f)||''}<span>Обновлено: ${formatTime(f.loc.ts)}</span></div></div>`
+    },{iconLayout:'default#image',iconImageHref:mapPinData(f,false),iconImageSize:[40,52],iconImageOffset:[-20,-52]});
+    ymap.geoObjects.add(pm); mapFriendPms.push(pm);
+  }
+}
+function closeMap(){
+  if(mapRefreshTimer){ clearInterval(mapRefreshTimer); mapRefreshTimer=null; }
+  if(mapWatchId!=null){ try{ navigator.geolocation.clearWatch(mapWatchId); }catch(e){} mapWatchId=null; }
+  if(ymap){ try{ ymap.destroy(); }catch(e){} ymap=null; }
+  mapFriendPms=[];
+  closeModal('mapModal');
+}
+document.getElementById('mapBtn').onclick=openMap;
+document.getElementById('mapCloseBtn').onclick=closeMap;
+document.getElementById('mapModal').onclick=e=>{ if(e.target.id==='mapModal') closeMap(); };
 
 // ===== ВИДЕО-СТАТУСЫ (СТОРИС) =====
 const STATUS_TTL=86400000;
@@ -2521,7 +2738,7 @@ async function finishStatusRec(){
   if(!statusChunks.length){ document.getElementById('statusRecStatus').textContent='Пустая запись'; return; }
   const blob=new Blob(statusChunks,{type:statusRec?statusRec.mimeType:'video/webm'});
   statusChunks=[];
-  if(blob.size>800000){ const el=document.getElementById('statusRecStatus'); el.textContent='Видео слишком большое (макс ~800 КБ)'; el.style.color='var(--red)'; return; }
+  if(blob.size>700000){ const el=document.getElementById('statusRecStatus'); el.textContent='Видео слишком большое (макс ~700 КБ)'; el.style.color='var(--red)'; return; }
   const reader=new FileReader();
   reader.onloadend=async()=>{ await postStatus(reader.result,'video'); closeStatusRec(); };
   reader.readAsDataURL(blob);
@@ -2548,7 +2765,7 @@ document.getElementById('statusFileInput').onchange=async e=>{
   const f=e.target.files[0]; e.target.value=''; if(!f) return;
   const el=document.getElementById('statusRecStatus'); el.style.color='var(--muted)';
   if(f.type.startsWith('video/')){
-    if(f.size>800000){ el.textContent='Видео слишком большое (макс ~800 КБ)'; el.style.color='var(--red)'; return; }
+    if(f.size>700000){ el.textContent='Видео слишком большое (макс ~700 КБ)'; el.style.color='var(--red)'; return; }
     const reader=new FileReader();
     reader.onloadend=async()=>{ await postStatus(reader.result,'video'); closeStatusRec(); };
     reader.readAsDataURL(f);
@@ -2589,11 +2806,16 @@ function loadStatus(){
   img.removeAttribute('src');
   video.classList.add('hidden'); img.classList.add('hidden');
   if(g.type==='video'){
+    const snd=document.getElementById('svSound');
+    video.muted=true;
+    if(snd){ snd.classList.remove('hidden'); snd.textContent='🔇'; snd.classList.add('muted'); }
     video.src=g.media; video.classList.remove('hidden');
-    video.play().catch(()=>showToast('Нажмите в любом месте для включения звука','info',3000));
+    const tryPlay=()=>{ const p=video.play(); if(p) p.catch(()=>{}); };
+    if(video.readyState>=2) tryPlay(); else video.onloadeddata=tryPlay;
     video.onended=()=>{ if(!svPaused) nextStatus(); };
     startVideoTimer();
   } else {
+    const snd=document.getElementById('svSound'); if(snd) snd.classList.add('hidden');
     img.src=g.media; img.classList.remove('hidden');
     svLeft=5000; startImgTimer();
   }
@@ -2662,6 +2884,15 @@ document.getElementById('svDelete').onclick=async()=>{
 };
 document.getElementById('svVideo').addEventListener('click',e=>{ e.stopPropagation(); if(svPaused) resumeStatus(); else pauseStatus(); });
 document.getElementById('svImg').addEventListener('click',e=>{ e.stopPropagation(); if(svPaused) resumeStatus(); else pauseStatus(); });
+document.getElementById('svSound').onclick=e=>{
+  e.stopPropagation();
+  const v=document.getElementById('svVideo');
+  v.muted=!v.muted;
+  const b=document.getElementById('svSound');
+  b.textContent=v.muted?'🔇':'🔊';
+  b.classList.toggle('muted',v.muted);
+  if(!v.paused) v.play().catch(()=>{});
+};
 document.addEventListener('keydown',e=>{
   if(document.getElementById('statusViewer').classList.contains('hidden')) return;
   if(e.key==='Escape') closeStatusViewer();
