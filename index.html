@@ -156,6 +156,7 @@
   .send-btn:hover{transform:scale(1.08);}
   .send-btn:active{transform:scale(.9);}
   .send-btn svg{width:18px;height:18px;}
+  .send-btn:disabled{opacity:.45;transform:none;}
   .img-preview{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;padding:6px 10px;width:fit-content;animation:msg-in .25s ease;}
   .img-preview img{width:56px;height:56px;object-fit:cover;border-radius:8px;}
   .img-remove{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;cursor:none;display:flex;align-items:center;justify-content:center;font-size:12px;transition:background .2s;}
@@ -397,12 +398,17 @@
   .toast.error{border-color:rgba(248,113,113,.4);background:linear-gradient(135deg,#241414,#2e1a1a);}
   .toast.info{border-color:rgba(102,192,244,.4);background:linear-gradient(135deg,#141e24,#1a262e);}
 
-  .friend-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;transition:background .15s,transform .15s;margin-bottom:4px;}
-  .friend-item:hover{background:var(--hover);transform:translateX(3px);}
+  .friend-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--line);transition:background .15s,transform .15s,border-color .15s;margin-bottom:8px;}
+  .friend-item:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16);transform:translateX(3px);}
   .friend-info{flex:1;min-width:0;}
   .friend-name{font-size:14px;font-weight:500;letter-spacing:.3px;}
   .friend-id{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:2px;letter-spacing:.5px;}
-  .friend-action{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid var(--line);color:#fff;cursor:none;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .15s;font-size:14px;}
+  .friend-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+  .friend-write{display:flex;align-items:center;gap:6px;padding:8px 14px;border:none;border-radius:999px;color:#04121a;font-weight:700;font-size:12px;letter-spacing:.3px;cursor:none;white-space:nowrap;background:linear-gradient(135deg,#22d3ee,#818cf8);box-shadow:0 4px 14px rgba(34,211,238,.25);transition:transform .15s,box-shadow .2s,filter .2s;}
+  .friend-write:hover{transform:scale(1.05);box-shadow:0 6px 20px rgba(129,140,248,.45);filter:brightness(1.08);}
+  .friend-write:active{transform:scale(.94);}
+  .friend-write svg{width:14px;height:14px;}
+  .friend-action{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid var(--line);color:#fff;cursor:none;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .15s;font-size:13px;}
   .friend-action:hover{background:rgba(255,255,255,.12);transform:scale(1.1);}
   .friend-action.danger:hover{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.4);}
 
@@ -469,7 +475,7 @@
   .main{transition:transform .35s cubic-bezier(.22,1,.36,1),opacity .35s;}
   .item,.friend-item,.member-item{transition:background .22s cubic-bezier(.22,1,.36,1),transform .22s cubic-bezier(.22,1,.36,1);}
   .item:hover{transform:translateX(4px);}
-  .icon-btn,.attach-btn,.mic-btn,.friend-action,.lb-btn{transition:background .22s cubic-bezier(.22,1,.36,1),transform .2s cubic-bezier(.34,1.56,.64,1);}
+  .icon-btn,.attach-btn,.mic-btn,.friend-action,.friend-write,.lb-btn{transition:background .22s cubic-bezier(.22,1,.36,1),transform .2s cubic-bezier(.34,1.56,.64,1);}
   .avatar{transition:transform .28s cubic-bezier(.34,1.56,.64,1);}
   .tab{transition:color .25s,background .25s,border-color .25s;}
   .msg-row,.msg{animation-duration:.35s;}
@@ -932,7 +938,7 @@ function playAddFriendSound(){ if(!sfxOn()) return; tone(660,0,0.1,'sine',0.2); 
 let callRingTimer=null;
 function startCallRing(){ if(!notifOn()) return; stopCallRing(); const once=()=>{tone(440,0,0.18,'sine',0.2);tone(480,0.2,0.18,'sine',0.2);}; once(); callRingTimer=setInterval(once,2200); }
 function stopCallRing(){ if(callRingTimer){clearInterval(callRingTimer);callRingTimer=null;} }
-document.addEventListener('click', e => { if(e.target.closest('button,.icon-btn,.tab,.item,.acct-card,.gal-card:not(.locked),.bg-card,.create-type-btn,.friend-action,.attach-btn,.mic-btn')) playClickSound(); });
+document.addEventListener('click', e => { if(e.target.closest('button,.icon-btn,.tab,.item,.acct-card,.gal-card:not(.locked),.bg-card,.create-type-btn,.friend-action,.friend-write,.attach-btn,.mic-btn')) playClickSound(); });
 
 // ===== TOAST =====
 function showToast(text, type='info', duration=2500){
@@ -1510,6 +1516,7 @@ document.getElementById('photoInput').onchange=async e=>{
     const dataUrl=await compressImage(f);
     if(dataUrl.length>900000){ showToast('Фото слишком большое','error'); e.target.value=''; return; }
     pendingImg=dataUrl;
+    if(sendLocked) setSendLock(false);
     document.getElementById('imgPreviewThumb').src=dataUrl;
     document.getElementById('imgPreview').classList.remove('hidden');
   }catch(err){ showToast('Не удалось загрузить фото','error'); }
@@ -1572,8 +1579,11 @@ document.getElementById('ctxPin').onclick=async()=>{ if(!contextMsgData||!curren
 document.getElementById('ctxDelete').onclick=async()=>{ if(!contextMsgData||!currentChat) return; await deleteDoc(doc(db,'chats',currentChat.id,'messages',contextMsgData.id)); };
 document.getElementById('replyCancel').onclick=()=>{ replyTo=null; document.getElementById('replyIndicator').classList.add('hidden'); };
 
+let sendLocked=false;
+function setSendLock(v){ sendLocked=v; const sb=document.querySelector('.send-btn'); if(sb) sb.disabled=v; }
 document.getElementById('composer').onsubmit=async e=>{
   e.preventDefault(); const input=document.getElementById('msgInput'), text=input.value.trim();
+  if(sendLocked) return;
   if((!text&&!pendingImg)||!currentChat) return;
   if(!canSend()){ showToast('Только владелец может писать в этот канал','info'); return; }
   playSendSound();
@@ -1589,11 +1599,12 @@ document.getElementById('composer').onsubmit=async e=>{
   document.getElementById('stickerPanel').classList.add('hidden');
   document.getElementById('emojiBtn').classList.remove('active');
   document.getElementById('stickerBtn').classList.remove('active');
+  setSendLock(true);
   bumpChatRow({text:text||'📷 Фото',from:me.id,ts});
 };
 
 let typeThr=0;
-document.getElementById('msgInput').addEventListener('input',()=>{ const n=Date.now(); if(n-typeThr>70){ typeThr=n; playTypingSound(); } });
+document.getElementById('msgInput').addEventListener('input',()=>{ if(sendLocked) setSendLock(false); const n=Date.now(); if(n-typeThr>70){ typeThr=n; playTypingSound(); } });
 
 // ===== КАСТОМНЫЕ ЭМОДЗИ =====
 function emojiSvg(glyph,bg1,bg2){
@@ -2395,9 +2406,9 @@ async function renderFriendsList(){
   for(const fid of friends){
     const u=allUsersCache[fid]; if(!u) continue;
     const el=document.createElement('div'); el.className='friend-item';
-    el.innerHTML=`<div class="avatar" style="width:44px;height:44px;font-size:16px;"></div><div class="friend-info"><div class="friend-name">${escapeHtml(u.nick)}${badgeFor(u)}</div><div class="friend-id">ID: ${u.id}</div>${u.status?`<div class="item-status">${escapeHtml(u.status)}</div>`:''}</div><button class="friend-action" title="Написать">💬</button><button class="friend-action danger" title="Удалить">✕</button>`;
+    el.innerHTML=`<div class="avatar" style="width:44px;height:44px;font-size:16px;"></div><div class="friend-info"><div class="friend-name">${escapeHtml(u.nick)}${badgeFor(u)}</div><div class="friend-id">ID: ${u.id}</div>${u.status?`<div class="item-status">${escapeHtml(u.status)}</div>`:''}</div><div class="friend-actions"><button class="friend-write" title="Написать сообщение"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>Написать</button><button class="friend-action danger" title="Удалить">✕</button></div>`;
     renderAvatar(el.querySelector('.avatar'),u);
-    el.querySelector('.friend-action[title="Написать"]').onclick=()=>createPrivateChatWith(u);
+    el.querySelector('.friend-write').onclick=()=>createPrivateChatWith(u);
     el.querySelector('.friend-action[title="Удалить"]').onclick=async()=>{ me.friends=(me.friends||[]).filter(id=>id!=u.id); await persistMe(); showToast(`${u.nick} удалён из друзей`,'info'); renderFriendsList(); };
     list.appendChild(el);
   }
