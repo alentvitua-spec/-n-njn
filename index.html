@@ -1163,6 +1163,7 @@ function register(){
     me=newUser; saveMeLocal();
     const lm=document.getElementById('loginModal'); lm.classList.remove('show'); setTimeout(()=>lm.classList.add('hidden'),300);
     openApp();
+    showSuccessAnimation();
     showWelcomeNotification(`Добро пожаловать, ${fn}!`);
     registering=false;
   });
@@ -1590,8 +1591,6 @@ document.getElementById('composer').onsubmit=async e=>{
   const ts=Date.now();
   const msgObj={from:me.id,text,ts,replyTo:replyTo?replyTo.id:null,pinned:false,readBy:[Number(me.id)]};
   if(pendingImg) msgObj.img=pendingImg;
-  await addDoc(collection(db,'chats',currentChat.id,'messages'),msgObj);
-  await setDoc(doc(db,'chats',currentChat.id),{lastMessage:{text:text||'📷 Фото',from:me.id,ts}},{merge:true});
   input.value=''; replyTo=null; pendingImg=null;
   document.getElementById('replyIndicator').classList.add('hidden');
   document.getElementById('imgPreview').classList.add('hidden');
@@ -1601,6 +1600,10 @@ document.getElementById('composer').onsubmit=async e=>{
   document.getElementById('stickerBtn').classList.remove('active');
   setSendLock(true);
   bumpChatRow({text:text||'📷 Фото',from:me.id,ts});
+  try{
+    await addDoc(collection(db,'chats',currentChat.id,'messages'),msgObj);
+    await setDoc(doc(db,'chats',currentChat.id),{lastMessage:{text:text||'📷 Фото',from:me.id,ts}},{merge:true});
+  }catch(err){ input.value=text; setSendLock(false); showToast('Не удалось отправить сообщение','error'); }
 };
 
 let typeThr=0;
@@ -1633,13 +1636,14 @@ function emojiToHtml(text){
 }
 function renderEmojiPanel(){
   const panel=document.getElementById('emojiPanel');
-  panel.innerHTML=Object.entries(EMOTES).map(([n,u])=>`<button class="emoji-cell" data-em="${n}"><img src="${u}" alt=":${n}:"/></button>`).join('');
+  panel.innerHTML=Object.entries(EMOTES).map(([n,u])=>`<button type="button" class="emoji-cell" data-em="${n}"><img src="${u}" alt=":${n}:"/></button>`).join('');
   panel.querySelectorAll('.emoji-cell').forEach(b=>b.onclick=()=>{
     const inp=document.getElementById('msgInput');
     const s=inp.selectionStart||inp.value.length, e=inp.selectionEnd||inp.value.length;
     const tok=':'+b.dataset.em+':';
     inp.value=inp.value.slice(0,s)+tok+inp.value.slice(e);
     inp.focus(); const pos=s+tok.length; inp.setSelectionRange(pos,pos);
+    b.blur();
     playTypingSound();
   });
 }
@@ -1696,14 +1700,14 @@ async function renderStickerPanel(){
   }
   let html=packs.length?'':'<div class="sticker-empty">Нет наборов</div>';
   packs.forEach((p,i)=>{
-    html+=`<div class="sticker-pack-row"><div class="sticker-pack-name">${p.name}</div>${p.id==='me_'+me.id?`<button class="sticker-pack-add" data-addown="1" title="Добавить свои стикеры">＋</button>`:''}</div>`;
-    html+=`<div class="sticker-grid">${p.stickers.map((s,j)=>`<button class="sticker-cell" data-p="${i}" data-s="${j}"><img src="${s}" alt=""/></button>`).join('')}</div>`;
+    html+=`<div class="sticker-pack-row"><div class="sticker-pack-name">${p.name}</div>${p.id==='me_'+me.id?`<button type="button" class="sticker-pack-add" data-addown="1" title="Добавить свои стикеры">＋</button>`:''}</div>`;
+    html+=`<div class="sticker-grid">${p.stickers.map((s,j)=>`<button type="button" class="sticker-cell" data-p="${i}" data-s="${j}"><img src="${s}" alt=""/></button>`).join('')}</div>`;
   });
-  html+=`<button class="create-type-btn" id="openStickerStoreBtn" style="font-size:12px;padding:10px;letter-spacing:1px">＋ ДОБАВИТЬ НАБОР СТИКЕРОВ</button>`;
+  html+=`<button type="button" class="create-type-btn" id="openStickerStoreBtn" style="font-size:12px;padding:10px;letter-spacing:1px">＋ ДОБАВИТЬ НАБОР СТИКЕРОВ</button>`;
   panel.innerHTML=html;
-  panel.querySelectorAll('.sticker-cell').forEach(b=>b.onclick=()=>{ const p=packs[+b.dataset.p]; sendSticker(p.stickers[+b.dataset.s]); });
-  const addOwn=panel.querySelector('[data-addown]'); if(addOwn) addOwn.onclick=()=>document.getElementById('stickerUploadInput').click();
-  const storeBtn=document.getElementById('openStickerStoreBtn'); if(storeBtn) storeBtn.onclick=()=>{ toggleStickerPanel(false); openStickerStore(); };
+  panel.querySelectorAll('.sticker-cell').forEach(b=>b.onclick=()=>{ const p=packs[+b.dataset.p]; b.blur(); sendSticker(p.stickers[+b.dataset.s]); });
+  const addOwn=panel.querySelector('[data-addown]'); if(addOwn) addOwn.onclick=()=>{ addOwn.blur(); document.getElementById('stickerUploadInput').click(); };
+  const storeBtn=document.getElementById('openStickerStoreBtn'); if(storeBtn) storeBtn.onclick=()=>{ storeBtn.blur(); toggleStickerPanel(false); openStickerStore(); };
 }
 function toggleStickerPanel(force){
   const sp=document.getElementById('stickerPanel'), ep=document.getElementById('emojiPanel');
@@ -1718,10 +1722,10 @@ async function sendSticker(url){
   if(!canSend()){ showToast('Только владелец может писать в этот канал','info'); return; }
   playSendSound();
   const ts=Date.now();
-  await addDoc(collection(db,'chats',currentChat.id,'messages'),{from:me.id,text:'',sticker:url,ts,pinned:false,readBy:[Number(me.id)]});
-  await setDoc(doc(db,'chats',currentChat.id),{lastMessage:{text:'🎭 Стикер',from:me.id,ts}},{merge:true});
   toggleStickerPanel(false);
   bumpChatRow({text:'🎭 Стикер',from:me.id,ts});
+  await addDoc(collection(db,'chats',currentChat.id,'messages'),{from:me.id,text:'',sticker:url,ts,pinned:false,readBy:[Number(me.id)]});
+  await setDoc(doc(db,'chats',currentChat.id),{lastMessage:{text:'🎭 Стикер',from:me.id,ts}},{merge:true});
 }
 function openStickerStore(){
   const list=document.getElementById('stickerStoreList');
@@ -2579,7 +2583,7 @@ function mapVisibleToMe(f){
   const v=f.mapVis||'off';
   if(v==='off') return false;
   if(v==='all') return true;
-  if(v==='friends') return (f.friends||[]).map(Number).includes(Number(me.id));
+  if(v==='friends') return true;
   if(v==='custom') return (f.mapVisList||[]).map(Number).includes(Number(me.id));
   return false;
 }
@@ -2591,11 +2595,11 @@ function mapAvatarUrl(u){
   return 'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' rx='24' fill='${col}'/><text x='24' y='30' font-family='Arial,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='#fff'>${letter}</text></svg>`);
 }
 function mapPinData(u,isMe){
-  const letter=((u&&(u.nick||u.name))||'?').trim()[0].toUpperCase()||'?';
   let c1,c2;
   if(isMe){ c1='#38bdf8'; c2='#1d4ed8'; }
   else { const pals=[['#f472b6','#be185d'],['#fb923c','#c2410c'],['#facc15','#a16207'],['#4ade80','#15803d'],['#22d3ee','#0e7490'],['#a78bfa','#6d28d9']]; const id=Number(u&&u.id)||0; const h=((id%pals.length)+pals.length)%pals.length; c1=pals[h][0]; c2=pals[h][1]; }
-  const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='52' viewBox='0 0 40 52'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='${c1}'/><stop offset='1' stop-color='${c2}'/></linearGradient></defs><path d='M20 1C10.1 1 2 9.1 2 19c0 12.7 18 32 18 32s18-19.3 18-32C38 9.1 29.9 1 20 1z' fill='url(#g)' stroke='rgba(255,255,255,.55)' stroke-width='1.5'/><circle cx='20' cy='19' r='9.5' fill='rgba(255,255,255,.25)'/><text x='20' y='24.5' font-family='Arial,sans-serif' font-size='13' font-weight='700' text-anchor='middle' fill='#fff'>${letter}</text></svg>`;
+  const av=mapAvatarUrl(u);
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='44' height='56' viewBox='0 0 44 56'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='${c1}'/><stop offset='1' stop-color='${c2}'/></linearGradient><clipPath id='cp'><circle cx='22' cy='21' r='10'/></clipPath></defs><path d='M22 2C12 2 4 10 4 20c0 13.4 18 34 18 34s18-20.6 18-34C40 10 32 2 22 2z' fill='url(#g)' stroke='rgba(255,255,255,.7)' stroke-width='1.6'/><image x='12' y='11' width='20' height='20' clip-path='url(#cp)' href='${av}' xlink:href='${av}' preserveAspectRatio='xMidYMid slice'/><circle cx='22' cy='21' r='10' fill='none' stroke='rgba(255,255,255,.92)' stroke-width='2'/></svg>`;
   return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
 }
 function publishLoc(lat,lng){
@@ -2641,9 +2645,9 @@ function initMap(){
   const done=(lat,lng)=>{
     lmap=L.map(container,{zoomControl:true}).setView([lat,lng],12);
     L.tileLayer(MAP_TILE,{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(lmap);
-    mePm=L.marker([lat,lng],{icon:L.divIcon({className:'',html:mapPinData(me,true),iconSize:[40,52],iconAnchor:[20,52],popupAnchor:[0,-52]})}).addTo(lmap).bindPopup('<div style="font-family:Arial;font-size:13px;color:#111;min-width:110px"><b>Вы</b><br><span style="font-size:11px;color:#666">Это ваша точка</span></div>');
+    mePm=L.marker([lat,lng],{icon:L.divIcon({className:'',html:mapPinData(me,true),iconSize:[44,56],iconAnchor:[22,56],popupAnchor:[0,-56]})}).addTo(lmap).bindPopup(`<div style="font-family:Arial,sans-serif;min-width:120px"><div style="display:flex;align-items:center;gap:8px"><img src="${mapAvatarUrl(me)}" width="32" height="32" style="border-radius:50%;object-fit:cover;box-shadow:0 1px 4px rgba(0,0,0,.25)"> <b style="font-size:13px;color:#111">${escapeHtml(me.nick||'Вы')}</b></div><div style="font-size:11px;color:#777;margin-top:6px">Это ваша точка</div></div>`);
     publishLoc(lat,lng);
-    renderMapFriends();
+    refreshUsersCache().then(()=>{ if(lmap) renderMapFriends(); }).catch(()=>{ if(lmap) renderMapFriends(); });
     if(mapRefreshTimer) clearInterval(mapRefreshTimer);
     mapRefreshTimer=setInterval(()=>{
       if(!lmap) return;
@@ -2671,9 +2675,9 @@ function renderMapFriends(){
     if(now-(f.loc.ts||0)>6*3600*1000) continue;
     if(!mapVisibleToMe(f)) continue;
     const name=f.nick||f.name||('#'+fid);
-    const pm=L.marker([f.loc.lat,f.loc.lng],{icon:L.divIcon({className:'',html:mapPinData(f,false),iconSize:[40,52],iconAnchor:[20,52],popupAnchor:[0,-52]})})
+    const pm=L.marker([f.loc.lat,f.loc.lng],{icon:L.divIcon({className:'',html:mapPinData(f,false),iconSize:[44,56],iconAnchor:[22,56],popupAnchor:[0,-56]})})
       .addTo(lmap)
-      .bindPopup(`<div style="font-family:Arial;font-size:13px;color:#111;min-width:150px"><div style="display:flex;align-items:center;gap:8px"><img src="${mapAvatarUrl(f)}" width="30" height="30" style="border-radius:50%;object-fit:cover"> <b>${escapeHtml(name)}</b></div><div style="font-size:11px;color:#666;margin-top:5px">${badgeFor(f)||''}<span>Обновлено: ${formatTime(f.loc.ts)}</span></div></div>`);
+      .bindPopup(`<div style="font-family:Arial,sans-serif;min-width:170px"><div style="display:flex;align-items:center;gap:10px"><img src="${mapAvatarUrl(f)}" width="36" height="36" style="border-radius:50%;object-fit:cover;box-shadow:0 1px 4px rgba(0,0,0,.25)"> <div><b style="font-size:14px;color:#111">${escapeHtml(name)}</b> ${badgeFor(f)||''}<div style="font-size:11px;color:#777;margin-top:2px">ID: ${f.id}</div></div></div>${f.status?`<div style="font-size:12px;color:#444;margin-top:8px;border-top:1px solid #eee;padding-top:6px">${escapeHtml(f.status)}</div>`:''}<div style="font-size:10px;color:#999;margin-top:6px">Обновлено: ${formatTime(f.loc.ts)}</div></div>`);
     mapFriendPms.push(pm);
   }
 }
