@@ -34,6 +34,12 @@
   @keyframes ripple{0%{transform:translate(-50%,-50%) scale(.3);opacity:.9;}100%{transform:translate(-50%,-50%) scale(6);opacity:0;}}
   #cursor{position:fixed;width:14px;height:14px;border-radius:50%;border:1px solid #fff;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .15s ease;mix-blend-mode:difference;}
 
+  #antidebug{position:fixed;inset:0;z-index:99998;background:radial-gradient(ellipse at center,#170404 0%,#000 75%);display:none;align-items:center;justify-content:center;text-align:center;}
+  #antidebug.show{display:flex;animation:fade-in .3s ease;}
+  #antidebug .ad-icon{font-size:52px;margin-bottom:16px;filter:drop-shadow(0 0 18px rgba(248,113,113,.7));}
+  #antidebug .ad-title{font-size:22px;font-weight:700;letter-spacing:6px;color:#f87171;margin-bottom:10px;text-shadow:0 0 24px rgba(248,113,113,.6);}
+  #antidebug .ad-sub{font-size:12px;letter-spacing:2px;color:rgba(255,255,255,.55);line-height:1.8;}
+
   #app{position:relative;z-index:2;height:100vh;display:flex;}
   .sidebar{width:360px;display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);}
   .sb-head{padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);}
@@ -193,6 +199,7 @@
   .modal button:active{transform:translateY(0);}
   .modal button.secondary{background:transparent;color:#fff;border:1px solid var(--line);box-shadow:none;}
   .modal button.secondary:hover{background:var(--hover);opacity:1;transform:translateY(-1px);}
+  .modal button:disabled{opacity:.45;pointer-events:none;cursor:not-allowed;}
   .hidden{display:none !important;}
 
   .settings-section{margin:22px 0;text-align:left;}
@@ -265,7 +272,7 @@
   .login-welcome{margin-bottom:18px;text-align:left;}
   .lw-title{font-size:22px;font-weight:700;letter-spacing:3px;line-height:1.2;color:#fff;text-shadow:0 0 22px rgba(255,255,255,.3);}
   .lw-wave{display:block;height:20px;margin-top:10px;overflow:visible;}
-  .lw-wave path{stroke:var(--green);stroke-width:3;stroke-linecap:round;fill:none;filter:drop-shadow(0 0 6px rgba(74,222,128,.55));}
+  .lw-wave path{stroke:#fff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;fill:none;filter:drop-shadow(0 0 7px rgba(255,255,255,.45));}
 
   .set-select{background:rgba(255,255,255,.06);border:1px solid var(--line);color:#fff;border-radius:10px;padding:8px 10px;font-size:12px;letter-spacing:1px;cursor:none;max-width:190px;}
   .set-select option{background:#1a1a1a;color:#fff;}
@@ -289,20 +296,24 @@
 
   /* ===== ЗВОНОК С ВИДЕО ===== */
   #callScreen{position:fixed;inset:0;z-index:300;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;animation:fade-in .25s ease;overflow:hidden;}
-  .call-aura{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;background:#000;}
-  .call-aura .ab{position:absolute;border-radius:50%;filter:blur(46px);opacity:.5;mix-blend-mode:screen;will-change:transform;animation:aura-drift 12s ease-in-out infinite alternate;}
-  .ab-1{width:56vmin;height:56vmin;left:-14%;top:-14%;background:radial-gradient(circle,rgba(74,222,128,.75),transparent 62%);}
-  .ab-2{width:50vmin;height:50vmin;right:-10%;top:16%;background:radial-gradient(circle,rgba(34,211,238,.7),transparent 62%);animation-delay:-4s;}
-  .ab-3{width:48vmin;height:48vmin;left:26%;bottom:-18%;background:radial-gradient(circle,rgba(168,85,247,.65),transparent 62%);animation-delay:-8s;}
-  .ab-4{width:40vmin;height:40vmin;left:-6%;bottom:4%;background:radial-gradient(circle,rgba(248,113,113,.55),transparent 62%);animation-delay:-2s;}
-  .ab-5{width:34vmin;height:34vmin;right:6%;top:-8%;background:radial-gradient(circle,rgba(251,191,36,.4),transparent 62%);animation-delay:-6s;}
-  @keyframes aura-drift{0%{transform:translate3d(0,0,0) scale(1);}100%{transform:translate3d(5vw,4vh,0) scale(1.28);}}
-  .call-aura .aw{position:absolute;left:-40%;right:-40%;height:24%;filter:blur(30px);opacity:.38;mix-blend-mode:screen;will-change:transform;animation:aura-wave 7s ease-in-out infinite alternate;}
-  .aw-a{top:2%;background:linear-gradient(90deg,transparent,rgba(74,222,128,.9),rgba(34,211,238,.7),transparent);animation-delay:-1s;}
-  .aw-b{top:36%;background:linear-gradient(90deg,transparent,rgba(168,85,247,.9),rgba(59,130,246,.8),transparent);animation-delay:-4s;}
-  .aw-c{top:68%;background:linear-gradient(90deg,transparent,rgba(248,113,113,.85),rgba(251,191,36,.7),transparent);animation-delay:-2.5s;}
-  @keyframes aura-wave{0%{transform:translate3d(-7%,0,0) skewX(-5deg);}100%{transform:translate3d(7%,0,0) skewX(5deg);}}
+  .call-aura{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;background:#000;animation:call-hue 22s linear infinite;}
+  .call-aura .ab{position:absolute;border-radius:50%;filter:blur(44px);opacity:.6;mix-blend-mode:screen;will-change:transform;animation:aura-drift 12s ease-in-out infinite alternate;}
+  .ab-1{width:56vmin;height:56vmin;left:-14%;top:-14%;background:radial-gradient(circle,rgba(74,222,128,.85),transparent 62%);}
+  .ab-2{width:50vmin;height:50vmin;right:-10%;top:16%;background:radial-gradient(circle,rgba(34,211,238,.8),transparent 62%);animation-delay:-4s;}
+  .ab-3{width:48vmin;height:48vmin;left:26%;bottom:-18%;background:radial-gradient(circle,rgba(168,85,247,.75),transparent 62%);animation-delay:-8s;}
+  .ab-4{width:40vmin;height:40vmin;left:-6%;bottom:4%;background:radial-gradient(circle,rgba(248,113,113,.6),transparent 62%);animation-delay:-2s;}
+  .ab-5{width:34vmin;height:34vmin;right:6%;top:-8%;background:radial-gradient(circle,rgba(251,191,36,.5),transparent 62%);animation-delay:-6s;}
+  @keyframes aura-drift{0%{transform:translate3d(0,0,0) scale(1);}100%{transform:translate3d(5vw,4vh,0) scale(1.3);}}
+  .call-aura .cw{position:absolute;left:-60%;right:-60%;height:170px;filter:blur(16px);mix-blend-mode:screen;will-change:transform;animation:call-cw-flow 13s ease-in-out infinite;}
+  .call-aura .cw svg{width:100%;height:100%;display:block;}
+  .cw-1{top:2%;opacity:.85;animation-duration:12s;}
+  .cw-2{top:26%;opacity:.9;animation-duration:15s;animation-direction:reverse;}
+  .cw-3{top:50%;opacity:.8;animation-duration:10s;}
+  .cw-4{bottom:-6%;opacity:.85;animation-duration:14s;animation-direction:reverse;}
+  @keyframes call-cw-flow{0%{transform:translate3d(-4%,0,0) skewX(-3deg);}50%{transform:translate3d(4%,-1.2%,0) skewX(3deg);}100%{transform:translate3d(-4%,0,0) skewX(-3deg);}}
+  @keyframes call-hue{0%{filter:hue-rotate(0deg);}50%{filter:hue-rotate(180deg);}100%{filter:hue-rotate(360deg);}}
   .call-video-bg{position:absolute;inset:0;background:transparent;display:flex;align-items:center;justify-content:center;z-index:2;}
+  #callScreen::after{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(160deg,rgba(34,211,238,.10),rgba(232,121,249,.07) 35%,rgba(74,222,128,.10) 65%,rgba(251,191,36,.06));animation:call-hue 22s linear infinite;}
   #remoteVideo{width:100%;height:100%;object-fit:cover;background:#000;}
   .call-video-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:transparent;}
   .call-avatar{width:110px;height:110px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;background:linear-gradient(135deg,#555,#222);overflow:hidden;animation:call-ring 1.4s ease-in-out infinite;}
@@ -526,6 +537,7 @@
 
 <div id="cursor"></div>
 <div class="toast-stack" id="toastStack"></div>
+<div id="antidebug"><div class="ad-inner"><div class="ad-icon">🚫</div><div class="ad-title">ДОСТУП ЗАПРЕЩЁН</div><div class="ad-sub">Закройте инструменты разработчика,<br>чтобы продолжить работу</div></div></div>
 
 <div id="splash">
   <div class="splash-bottle">
@@ -772,7 +784,7 @@
 </div>
 
 <div id="callScreen" class="hidden">
-  <div class="call-aura"><span class="ab ab-1"></span><span class="ab ab-2"></span><span class="ab ab-3"></span><span class="ab ab-4"></span><span class="ab ab-5"></span><span class="aw aw-a"></span><span class="aw aw-b"></span><span class="aw aw-c"></span></div>
+  <div class="call-aura"><span class="ab ab-1"></span><span class="ab ab-2"></span><span class="ab ab-3"></span><span class="ab ab-4"></span><span class="ab ab-5"></span><div class="cw cw-1"><svg viewBox="0 0 1200 130" preserveAspectRatio="none"><defs><linearGradient id="cwG1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#22d3ee"/><stop offset=".5" stop-color="#818cf8"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs><path d="M0 70 Q150 5 300 70 T600 70 T900 70 T1200 70 L1200 130 L0 130 Z" fill="url(#cwG1)"/></svg></div><div class="cw cw-2"><svg viewBox="0 0 1200 130" preserveAspectRatio="none"><defs><linearGradient id="cwG2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f472b6"/><stop offset=".5" stop-color="#fb923c"/><stop offset="1" stop-color="#facc15"/></linearGradient></defs><path d="M0 55 Q150 110 300 55 T600 55 T900 55 T1200 55 L1200 130 L0 130 Z" fill="url(#cwG2)"/></svg></div><div class="cw cw-3"><svg viewBox="0 0 1200 130" preserveAspectRatio="none"><defs><linearGradient id="cwG3" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4ade80"/><stop offset=".5" stop-color="#22d3ee"/><stop offset="1" stop-color="#818cf8"/></linearGradient></defs><path d="M0 60 Q150 15 300 60 T600 60 T900 60 T1200 60 L1200 130 L0 130 Z" fill="url(#cwG3)"/></svg></div><div class="cw cw-4"><svg viewBox="0 0 1200 130" preserveAspectRatio="none"><defs><linearGradient id="cwG4" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#facc15"/><stop offset=".5" stop-color="#fb7185"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs><path d="M0 65 Q150 120 300 65 T600 65 T900 65 T1200 65 L1200 130 L0 130 Z" fill="url(#cwG4)"/></svg></div></div>
   <div class="call-video-bg">
     <video id="remoteVideo" autoplay playsinline></video>
     <div class="call-video-placeholder" id="callPlaceholder">
@@ -884,6 +896,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// ===== АНТИ-ВЗЛОМ =====
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{
+  const k=(e.key||'').toLowerCase();
+  if(e.key==='F12'||(e.ctrlKey||e.metaKey)&&(['u','s','i','j','c','k'].includes(k))||(e.ctrlKey&&e.shiftKey&&['i','j','c','k'].includes(k))) e.preventDefault();
+},true);
+let dtWarned=false;
+function dtDetect(){ const w=window.outerWidth-window.innerWidth, h=window.outerHeight-window.innerHeight; return (w>160||h>160)||(window.Firebug&&window.Firebug.chrome&&window.Firebug.chrome.isInitialized); }
+setInterval(()=>{
+  if(dtDetect()){
+    if(!dtWarned){ dtWarned=true; const ad=document.getElementById('antidebug'); if(ad) ad.classList.add('show'); console.clear(); }
+  } else if(dtWarned){ dtWarned=false; const ad=document.getElementById('antidebug'); if(ad) ad.classList.remove('show'); }
+},800);
+
 // ===== ЗВУКИ =====
 let AC=null;
 function prefs(){ return me&&me.prefs?me.prefs:{}; }
@@ -959,6 +985,7 @@ if(!isMobile){ addEventListener('mousemove',e=>{ const c=document.getElementById
 // ===== ДАННЫЕ =====
 const LS_ME='sphere_me_v18';
 const LS_MY='sphere_my_accounts_v1';
+const MAX_ACCOUNTS=3;
 let me=JSON.parse(localStorage.getItem(LS_ME)||'null');
 let currentChat=null, currentTab='all', replyTo=null, createType='private';
 let profileRef=null, OLD_IDS=new Set();
@@ -967,6 +994,7 @@ let allUsersCache={};
 let usersCacheT=0;
 let unread={};
 let lastSeenMsg={};
+function saveMeLocal(){ if(!me) return; localStorage.setItem(LS_ME,JSON.stringify({id:me.id})); }
 
 function getMyAccounts(){ try{ return JSON.parse(localStorage.getItem(LS_MY)||'[]'); }catch(e){ return []; } }
 function addMyAccount(id){ const arr=getMyAccounts(); if(!arr.includes(id)){ arr.push(id); localStorage.setItem(LS_MY, JSON.stringify(arr)); } }
@@ -1031,7 +1059,7 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
 function formatTime(ts){ const d=new Date(ts), n=new Date(); return d.toDateString()===n.toDateString()?d.toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('ru',{day:'2-digit',month:'short'}); }
 
 // ===== ВЕРИФИКАЦИЯ =====
-const VERIFIED_IDS=new Set([49046,388268,827760,490465]);
+const VERIFIED_IDS=new Set([49046,388268,827760,490465,624989]);
 function isVerified(user){ return !!(user&&(user.verified===true||VERIFIED_IDS.has(Number(user.id)))); }
 function vBadge(){ return '<svg class="ver-badge" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#2aabee"/><path d="M8.2 12.4l2.5 2.5 5-5.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
 function badgeFor(user){ return isVerified(user)?vBadge():''; }
@@ -1040,7 +1068,7 @@ function peerOf(chat){ const ms=(chat.members||[]).map(Number); const meId=Numbe
 function normUser(user){ if(!user) return null; return {...user, id:Number(user.id!=null?user.id:user.id)}; }
 
 // ===== ВХОД =====
-async function initApp(){ await recomputeOld(); if(me){ me={...me,id:Number(me.id)}; const ds=await getDoc(doc(db,'users',me.id.toString())); if(ds.exists()){ me={...ds.data(),id:Number(ds.data().id!=null?ds.data().id:ds.id)}; localStorage.setItem(LS_ME,JSON.stringify(me)); openApp(); } else { me=null; showLogin(); } } else showLogin(); }
+async function initApp(){ await recomputeOld(); if(me){ me={...me,id:Number(me.id)}; const ds=await getDoc(doc(db,'users',me.id.toString())); if(ds.exists()){ me={...ds.data(),id:Number(ds.data().id!=null?ds.data().id:ds.id)}; saveMeLocal(); openApp(); } else { me=null; showLogin(); } } else showLogin(); }
 
 function showLogin(){ const m=document.getElementById('loginModal'); m.classList.remove('hidden'); requestAnimationFrame(()=>m.classList.add('show')); renderLoginList(); }
 
@@ -1055,11 +1083,13 @@ async function renderLoginList(){
   if(!mine.length){ html+='<div class="limit-note" style="margin-bottom:14px">На этом устройстве пока нет аккаунтов.<br>Создайте новый или войдите по ID.</div>'; }
   mine.forEach(u=>{ const act=me&&me.id==u.id; html+=`<button class="acct-card${act?' active':''}"><div class="avatar" style="width:42px;height:42px;font-size:15px"></div><div class="acct-meta"><div class="acct-nick">${escapeHtml(u.nick)}</div><div class="acct-id">ID ${u.id}</div></div>${act?'<span class="acct-tag">АКТИВЕН</span>':''}</button>`; });
   html+='</div>';
-  html+=`<button id="newAcctBtn">НОВЫЙ АККАУНТ</button>`;
+  const full=mine.length>=MAX_ACCOUNTS;
+  if(full) html+=`<div class="limit-note" style="margin-bottom:10px">Максимум ${MAX_ACCOUNTS} аккаунта на устройство.<br>Удалите один, чтобы создать новый.</div>`;
+  html+=`<button id="newAcctBtn"${full?' disabled':''}>НОВЫЙ АККАУНТ</button>`;
   html+=`<button class="secondary" id="loginByIdBtn">ВОЙТИ ПО ID</button>`;
   content.innerHTML=html;
   content.querySelectorAll('.acct-card').forEach((btn,i)=>{ const u=mine[i]; renderAvatar(btn.querySelector('.avatar'),u); btn.onclick=()=>attemptLogin(u); });
-  document.getElementById('newAcctBtn').onclick=renderLoginRegister;
+  if(!full) document.getElementById('newAcctBtn').onclick=renderLoginRegister;
   document.getElementById('loginByIdBtn').onclick=renderLoginById;
 }
 
@@ -1081,11 +1111,11 @@ function renderLoginRegister(){
 
 // ---- ВОЛНА РЕГИСТРАЦИИ ----
 let lwCur=0,lwTarget=0,lwRaf=null;
-const LW_MAX=340;
+const LW_MAX=360;
 function lwMeasure(t){ const c=document.createElement('canvas').getContext('2d'); c.font='600 14px Arial,sans-serif'; return Math.min(LW_MAX,c.measureText(t||'').width); }
-function lwPath(w){ const base=10,amp=4.5,wl=24; if(w<=1) return 'M0 '+base; let d='M0 '+base; for(let x=3;x<=w+0.01;x+=3){ const y=base+Math.sin(x*2*Math.PI/wl)*amp; d+=' L'+x.toFixed(1)+' '+y.toFixed(1); } return d; }
+function lwPath(w){ const base=11,amp=5,wl=26; if(w<=2) return 'M0 '+base; const step=3; const pts=[]; for(let x=0;x<=w;x+=step){ pts.push([x,base+Math.sin(x*2*Math.PI/wl)*amp]); } let d='M'+pts[0][0].toFixed(1)+' '+pts[0][1].toFixed(1); for(let i=1;i<pts.length;i++){ const x0=pts[i-1][0],y0=pts[i-1][1],x1=pts[i][0],y1=pts[i][1]; const mx=(x0+x1)/2,my=(y0+y1)/2; d+=' Q'+x0.toFixed(1)+' '+y0.toFixed(1)+' '+mx.toFixed(1)+' '+my.toFixed(1); } return d; }
 function lwApply(w){ const el=document.getElementById('lwWave'); if(!el) return; el.setAttribute('width',w.toFixed(1)); el.querySelector('path').setAttribute('d',lwPath(w)); }
-function lwLoop(){ lwCur+=(lwTarget-lwCur)*0.16; if(Math.abs(lwTarget-lwCur)<0.4) lwCur=lwTarget; lwApply(lwCur); if(lwCur===lwTarget){ lwRaf=null; return; } lwRaf=requestAnimationFrame(lwLoop); }
+function lwLoop(){ lwCur+=(lwTarget-lwCur)*0.12; if(Math.abs(lwTarget-lwCur)<0.4) lwCur=lwTarget; lwApply(lwCur); if(lwCur===lwTarget){ lwRaf=null; return; } lwRaf=requestAnimationFrame(lwLoop); }
 function lwSync(){ const ni=document.getElementById('nickInput'),pi=document.getElementById('passRegInput'); lwTarget=lwMeasure(((ni?ni.value:'')+(pi?pi.value:''))); if(!lwRaf) lwRaf=requestAnimationFrame(lwLoop); }
 
 function renderLoginById(){
@@ -1108,27 +1138,31 @@ function renderLoginById(){
   setTimeout(()=>inp.focus(),300);
 }
 
-async function register(){
+let registering=false;
+function register(){
+  if(registering) return;
   const ni=document.getElementById('nickInput'); const nick=ni.value.trim();
   const pi=document.getElementById('passRegInput'); const pw=pi?pi.value:'';
   if(nick.length<2){ playErrorSound(); ni.classList.add('shake'); setTimeout(()=>ni.classList.remove('shake'),400); showToast('Ник слишком короткий','error'); return; }
   if(!pw||pw.length<4){ playErrorSound(); if(pi){ pi.classList.add('shake'); setTimeout(()=>pi.classList.remove('shake'),400); } showToast('Придумайте пароль (мин. 4 символа)','error'); return; }
-  await refreshUsersCache();
-  const existing=new Set(Object.values(allUsersCache).map(u=>u.nick));
+  if(getMyAccounts().length>=MAX_ACCOUNTS){ playErrorSound(); showToast('Максимум '+MAX_ACCOUNTS+' аккаунта на устройство','error'); return; }
+  registering=true;
+  const existing=new Set(Object.values(allUsersCache).map(u=>u.nick||'').filter(Boolean));
   let fn=nick,i=1; while(existing.has(fn)) fn=`${nick}${++i}`;
   const id=generateId();
-  const newUser={id,nick:fn,password:await hashPass(pw),createdAt:Date.now(),avatarImg:null,bgImg:null,onlineMs:0,frameChoice:'none',bgChoice:'none',friends:[],status:''};
-  await setDoc(doc(db,'users',id.toString()),newUser);
-  await recomputeOld();
-  addMyAccount(id);
-  me=newUser; localStorage.setItem(LS_ME,JSON.stringify(me));
-  const lm=document.getElementById('loginModal'); lm.classList.remove('show'); setTimeout(()=>lm.classList.add('hidden'),300);
-  await showSuccessAnimation();
-  showWelcomeNotification(`Добро пожаловать, ${fn}!`);
-  setTimeout(openApp,600);
+  hashPass(pw).then(h=>{
+    const newUser={id,nick:fn,password:h,createdAt:Date.now(),avatarImg:null,bgImg:null,onlineMs:0,frameChoice:'none',bgChoice:'none',friends:[],status:''};
+    setDoc(doc(db,'users',id.toString()),newUser).catch(()=>{ if(me&&me.id===id) showToast('Ошибка сети при сохранении аккаунта','error'); });
+    addMyAccount(id);
+    me=newUser; saveMeLocal();
+    const lm=document.getElementById('loginModal'); lm.classList.remove('show'); setTimeout(()=>lm.classList.add('hidden'),300);
+    openApp();
+    showWelcomeNotification(`Добро пожаловать, ${fn}!`);
+    registering=false;
+  });
 }
 
-function persistMe(){ if(!me) return; setDoc(doc(db,'users',me.id.toString()),me,{merge:true}); localStorage.setItem(LS_ME,JSON.stringify(me)); }
+function persistMe(){ if(!me) return; setDoc(doc(db,'users',me.id.toString()),me,{merge:true}); saveMeLocal(); }
 
 // ===== ПАРОЛЬ =====
 let passAction=null;
@@ -1154,7 +1188,7 @@ async function attemptLogin(u){
   }
 }
 function completeLogin(u){
-  me=u; localStorage.setItem(LS_ME,JSON.stringify(me));
+  me=u; saveMeLocal();
   playSuccessSound(); closeModal('loginModal'); closeModal('passModal');
   setTimeout(openApp,250);
 }
@@ -2526,9 +2560,9 @@ function logoutAccount(){
   showLogin();
 }
 
-// ===== ЯНДЕКС КАРТЫ =====
-const YANDEX_API_KEY='';
-let ymap=null, ymapScriptLoaded=false, mapRefreshTimer=null, mapWatchId=null, mapFriendPms=[];
+// ===== КАРТА (LEAFLET + OPENSTREETMAP, без ключа) =====
+const MAP_TILE='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+let lmap=null, leafletLoaded=false, mapRefreshTimer=null, mapWatchId=null, mapFriendPms=[];
 let geoShareTimer=null;
 function mapVisibleToMe(f){
   const v=f.mapVis||'off';
@@ -2566,56 +2600,56 @@ function startGeoShare(){
   once();
   geoShareTimer=setInterval(once,60000);
 }
-function loadYandexMaps(){
+function loadLeaflet(){
   return new Promise((resolve,reject)=>{
-    if(typeof ymaps!=='undefined'){ ymaps.ready(resolve); return; }
-    if(ymapScriptLoaded){ const t=setInterval(()=>{ if(typeof ymaps!=='undefined'){ clearInterval(t); ymaps.ready(resolve); } },100); return; }
-    ymapScriptLoaded=true;
+    if(typeof L!=='undefined'){ resolve(); return; }
+    if(leafletLoaded){ const t=setInterval(()=>{ if(typeof L!=='undefined'){ clearInterval(t); resolve(); } },100); return; }
+    leafletLoaded=true;
+    const css=document.createElement('link'); css.rel='stylesheet'; css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
     const s=document.createElement('script');
-    s.src='https://api-maps.yandex.ru/2.1/?apikey='+YANDEX_API_KEY+'&lang=ru_RU';
-    s.onload=()=>ymaps.ready(resolve);
-    s.onerror=()=>{ ymapScriptLoaded=false; reject(new Error('Не удалось загрузить Яндекс.Карты')); };
+    s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    s.onload=resolve;
+    s.onerror=()=>{ leafletLoaded=false; reject(new Error('Не удалось загрузить карту')); };
     document.head.appendChild(s);
   });
 }
 async function openMap(){
   openModal('mapModal');
   const st=document.getElementById('mapStatus');
-  if(!YANDEX_API_KEY){ st.textContent='Добавьте ключ Яндекс.Карт: укажите YANDEX_API_KEY в коде.'; st.style.color='var(--red)'; return; }
   st.textContent='Загрузка карты…'; st.style.color='var(--muted)';
-  try{ await loadYandexMaps(); initMap(); }
+  try{ await loadLeaflet(); initMap(); }
   catch(e){ st.textContent=e.message||'Ошибка загрузки карты'; st.style.color='var(--red)'; }
 }
 function initMap(){
   const container=document.getElementById('mapContainer');
   const st=document.getElementById('mapStatus');
-  if(ymap){ try{ ymap.destroy(); }catch(e){} ymap=null; }
+  if(lmap){ try{ lmap.remove(); }catch(e){} lmap=null; }
   st.textContent='Определяем ваше местоположение…'; st.style.color='var(--muted)';
   let mePm=null;
   const done=(lat,lng)=>{
-    ymap=new ymaps.Map(container,{center:[lat,lng],zoom:12},{});
-    ymap.controls.add('zoomControl');
-    mePm=new ymaps.Placemark([lat,lng],{hintContent:'Вы',balloonContent:'<div style="font-family:Arial;font-size:13px;color:#111;min-width:110px"><b>Вы</b><br><span style="font-size:11px;color:#666">Это ваша точка</span></div>'},{iconLayout:'default#image',iconImageHref:mapPinData(me,true),iconImageSize:[40,52],iconImageOffset:[-20,-52]});
-    ymap.geoObjects.add(mePm);
+    lmap=L.map(container,{zoomControl:true}).setView([lat,lng],12);
+    L.tileLayer(MAP_TILE,{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(lmap);
+    mePm=L.marker([lat,lng],{icon:L.divIcon({className:'',html:mapPinData(me,true),iconSize:[40,52],iconAnchor:[20,52],popupAnchor:[0,-52]})}).addTo(lmap).bindPopup('<div style="font-family:Arial;font-size:13px;color:#111;min-width:110px"><b>Вы</b><br><span style="font-size:11px;color:#666">Это ваша точка</span></div>');
     publishLoc(lat,lng);
     renderMapFriends();
     if(mapRefreshTimer) clearInterval(mapRefreshTimer);
     mapRefreshTimer=setInterval(()=>{
-      if(!ymap) return;
+      if(!lmap) return;
       navigator.geolocation.getCurrentPosition(p=>{
         const la=p.coords.latitude,lo=p.coords.longitude;
         publishLoc(la,lo);
-        if(mePm&&ymap){ try{ mePm.geometry.setCoordinates([la,lo]); }catch(e){} ymap.setCenter([la,lo],ymap.getZoom(),{duration:400}); }
+        if(mePm&&lmap){ mePm.setLatLng([la,lo]); lmap.panTo([la,lo],{animate:true}); }
       },()=>{},{enableHighAccuracy:false,timeout:10000,maximumAge:60000});
-      refreshUsersCache().then(()=>{ if(ymap) renderMapFriends(); }).catch(()=>{});
+      refreshUsersCache().then(()=>{ if(lmap) renderMapFriends(); }).catch(()=>{});
     },30000);
     st.textContent='Друзья на карте обновляются каждые 30 секунд';
   };
   navigator.geolocation.getCurrentPosition(p=>done(p.coords.latitude,p.coords.longitude),()=>done(55.7558,37.6173),{enableHighAccuracy:true,timeout:12000,maximumAge:30000});
 }
 function renderMapFriends(){
-  if(!ymap) return;
-  for(const pm of mapFriendPms){ try{ ymap.geoObjects.remove(pm); }catch(e){} }
+  if(!lmap) return;
+  for(const pm of mapFriendPms){ try{ lmap.removeLayer(pm); }catch(e){} }
   mapFriendPms=[];
   const myId=Number(me.id);
   const friends=(me.friends||[]).map(Number).filter(f=>f!==myId);
@@ -2626,17 +2660,16 @@ function renderMapFriends(){
     if(now-(f.loc.ts||0)>6*3600*1000) continue;
     if(!mapVisibleToMe(f)) continue;
     const name=f.nick||f.name||('#'+fid);
-    const pm=new ymaps.Placemark([f.loc.lat,f.loc.lng],{
-      hintContent:name,
-      balloonContent:`<div style="font-family:Arial;font-size:13px;color:#111;min-width:150px"><div style="display:flex;align-items:center;gap:8px"><img src="${mapAvatarUrl(f)}" width="30" height="30" style="border-radius:50%;object-fit:cover"> <b>${escapeHtml(name)}</b></div><div style="font-size:11px;color:#666;margin-top:5px">${badgeFor(f)||''}<span>Обновлено: ${formatTime(f.loc.ts)}</span></div></div>`
-    },{iconLayout:'default#image',iconImageHref:mapPinData(f,false),iconImageSize:[40,52],iconImageOffset:[-20,-52]});
-    ymap.geoObjects.add(pm); mapFriendPms.push(pm);
+    const pm=L.marker([f.loc.lat,f.loc.lng],{icon:L.divIcon({className:'',html:mapPinData(f,false),iconSize:[40,52],iconAnchor:[20,52],popupAnchor:[0,-52]})})
+      .addTo(lmap)
+      .bindPopup(`<div style="font-family:Arial;font-size:13px;color:#111;min-width:150px"><div style="display:flex;align-items:center;gap:8px"><img src="${mapAvatarUrl(f)}" width="30" height="30" style="border-radius:50%;object-fit:cover"> <b>${escapeHtml(name)}</b></div><div style="font-size:11px;color:#666;margin-top:5px">${badgeFor(f)||''}<span>Обновлено: ${formatTime(f.loc.ts)}</span></div></div>`);
+    mapFriendPms.push(pm);
   }
 }
 function closeMap(){
   if(mapRefreshTimer){ clearInterval(mapRefreshTimer); mapRefreshTimer=null; }
   if(mapWatchId!=null){ try{ navigator.geolocation.clearWatch(mapWatchId); }catch(e){} mapWatchId=null; }
-  if(ymap){ try{ ymap.destroy(); }catch(e){} ymap=null; }
+  if(lmap){ try{ lmap.remove(); }catch(e){} lmap=null; }
   mapFriendPms=[];
   closeModal('mapModal');
 }
