@@ -621,6 +621,15 @@
   .create-type-btn{border-radius:30px;font-weight:600;}
   .friend-write{border-radius:999px;box-shadow:0 6px 16px rgba(74,222,128,.35);}
   .cs-danger{border-radius:30px;}
+
+  /* ===== СВЕТ В КНОПКЕ ЗА КУРСОРОМ ===== */
+  button{position:relative;}
+  button::after,.upload-btn::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;opacity:0;background:radial-gradient(110px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.4),rgba(255,255,255,.09) 45%,transparent 68%);mix-blend-mode:screen;transition:opacity .15s ease;}
+  button:hover::after,.upload-btn:hover::after{opacity:1;}
+  button:active::after,.upload-btn:active::after{opacity:.5;}
+  .cs-select{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:12px;padding:8px 10px;font-size:13px;font-family:var(--font);outline:none;min-width:120px;}
+  .cs-select option{background:#121a2b;color:#fff;}
+  .cs-select:disabled{opacity:.45;}
 </style>
 </head>
 <body>
@@ -777,6 +786,13 @@
     <div class="settings-section hidden" id="csChannelAsSection"><h3>КАНАЛ · ПИСЬМО</h3><div class="set-row"><span class="set-label">Писать от имени канала</span><label class="switch"><input type="checkbox" id="csAsChannel"/><span class="slider"></span></label></div></div>
     <div class="settings-section hidden" id="csPermSection"><h3>КАНАЛ</h3>
       <div class="set-row"><span class="set-label">Участники могут писать</span><label class="switch"><input type="checkbox" id="csCanWrite"/><span class="slider"></span></label></div>
+    </div>
+    <div class="settings-section hidden" id="csGroupSection"><h3>НАСТРОЙКИ ГРУППЫ</h3>
+      <div class="set-row"><span class="set-label">Медленный режим</span><select id="csSlowMode" class="cs-select"><option value="0">Выкл</option><option value="5">5 сек</option><option value="10">10 сек</option><option value="30">30 сек</option></select></div>
+      <div class="set-row"><span class="set-label">Запрет голосовых</span><label class="switch"><input type="checkbox" id="csNoVoice"/><span class="slider"></span></label></div>
+      <div class="set-row"><span class="set-label">Запрет фото и видео</span><label class="switch"><input type="checkbox" id="csNoMedia"/><span class="slider"></span></label></div>
+      <div class="set-row"><span class="set-label">Тема группы</span><select id="csCategory" class="cs-select"><option value="">Без темы</option><option>Общение</option><option>Игры</option><option>Учёба</option><option>Музыка</option><option>Бизнес</option><option>Спорт</option><option>Кино</option></select></div>
+      <div class="set-row"><span class="set-label">Показывать в каталоге</span><label class="switch"><input type="checkbox" id="csPublic"/><span class="slider"></span></label></div>
     </div>
     <div class="settings-section"><h3>УЧАСТНИКИ</h3><div class="member-list" id="csMembers" style="max-height:200px;overflow-y:auto;text-align:left;"></div></div>
     <div class="settings-section hidden" id="csAddMemberSection"><h3>ДОБАВИТЬ УЧАСТНИКОВ</h3><div class="member-list" id="csAddMembers"></div><button id="csAddMembersBtn">ДОБАВИТЬ ВЫБРАННЫХ</button></div>
@@ -1728,7 +1744,7 @@ async function openChat(chat){
     document.getElementById('chatSettingsBtn').style.display=oneInfo?'none':'flex';
     document.getElementById('dolphinBtn').style.display='flex';
   } else {
-    document.getElementById('chatSub').textContent=`${chat.type==='group'?'Группа':'Канал'} · ${chat.members.length} уч.`;
+    document.getElementById('chatSub').textContent=`${chat.type==='group'?'Группа':'Канал'} · ${chat.members.length} уч.${chat.category?' · Тема: '+chat.category:''}`;
     renderAvatar(av,chat,{frame:false}); av.onclick=null;
     cTitle.innerHTML=escapeHtml(chat.name||'')+badgeForChat(chat);
     const isOwner=Number(chat.createdBy)===Number(me.id);
@@ -1759,20 +1775,22 @@ function isPeerBlocked(chat){ if(!chat||chat.type!=='private') return false; con
 function canSend(){
   if(!currentChat) return false;
   if(currentChat.type==='private'&&isPeerBlocked(currentChat)) return false;
-  if(currentChat.type!=='channel') return true;
+  if(currentChat.type!=='channel'&&currentChat.type!=='group') return true;
   if(currentChat.canWrite==='owner') return Number(currentChat.createdBy)===Number(me.id);
   return true;
 }
 function updateComposerAccess(){
   const ch=currentChat;
   const blocked=!!(ch&&isPeerBlocked(ch));
-  const locked=!!(ch&&ch.type==='channel'&&ch.canWrite==='owner'&&Number(ch.createdBy)!==Number(me.id))||blocked;
+  const locked=!!(ch&&(ch.type==='channel'||ch.type==='group')&&ch.canWrite==='owner'&&Number(ch.createdBy)!==Number(me.id))||blocked;
+  const noVoice=!!(ch&&ch.type==='group'&&ch.noVoice);
+  const noMedia=!!(ch&&ch.type==='group'&&ch.noMedia);
   const form=document.getElementById('composer'), inp=document.getElementById('msgInput');
   if(!form||!inp) return;
   form.classList.toggle('locked',locked);
   inp.disabled=locked;
   inp.placeholder=blocked?'Пользователь заблокирован':(locked?'Только владелец может писать':'Сообщение...');
-  form.querySelectorAll('.attach-btn,.mic-btn,.send-btn').forEach(b=>b.disabled=locked);
+  form.querySelectorAll('.attach-btn,.mic-btn,.send-btn').forEach(b=>b.disabled=locked||(b.classList.contains('mic-btn')&&noVoice)||(b.classList.contains('attach-btn')&&noMedia));
   if(locked){ document.getElementById('emojiPanel').classList.add('hidden'); document.getElementById('stickerPanel').classList.add('hidden'); document.getElementById('emojiBtn').classList.remove('active'); document.getElementById('stickerBtn').classList.remove('active'); }
 }
 function bumpChatRow(lm){
@@ -1994,10 +2012,14 @@ async function startRecording(){
 }
 function stopRecording(){ if(mediaRecorder&&isRecording){ isRecording=false; clearInterval(recTimer); mediaRecorder.stop(); hideRecUI(); } }
 function cancelRecording(){ if(mediaRecorder&&isRecording){ isRecording=false; clearInterval(recTimer); mediaRecorder.onstop=null; mediaRecorder.stop(); mediaRecorder.stream.getTracks().forEach(t=>t.stop()); hideRecUI(); } }
+let slowModeTs={};
 async function sendVoice(base64,dur){
   if(!currentChat) return;
-  if(!canSend()){ showToast(isPeerBlocked(currentChat)?'Пользователь заблокирован':'Только владелец может писать в этот канал','info'); return; }
+  if(!canSend()){ showToast(isPeerBlocked(currentChat)?'Пользователь заблокирован':'Только владелец может писать в этот чат','info'); return; }
   if(msgFloodBlocked()) return;
+  if(currentChat.type==='group'&&currentChat.noVoice){ showToast('В этой группе отключены голосовые сообщения','info'); return; }
+  const smT=(currentChat.slowMode||0)*1000;
+  if(smT){ const w=((slowModeTs[currentChat.id]||0)+smT)-Date.now(); if(w>0){ showToast('Медленный режим: подождите '+Math.ceil(w/1000)+' сек','info'); return; } }
   playSendSound();
   const ts=Date.now();
   const vo={from:me.id,text:'',audio:base64,audioDur:dur,ts,pinned:false,readBy:[Number(me.id)]};
@@ -2005,6 +2027,7 @@ async function sendVoice(base64,dur){
   await addDoc(collection(db,'chats',currentChat.id,'messages'),vo);
   await setDoc(doc(db,'chats',currentChat.id),{lastMessage:{text:'🎤 Голосовое',from:me.id,ts}},{merge:true});
   bumpChatRow({text:'🎤 Голосовое',from:me.id,ts});
+  slowModeTs[currentChat.id]=Date.now();
   dolphinTick(currentChat.id);
 }
 document.getElementById('micBtn').onclick=()=>{ if(isRecording) stopRecording(); else startRecording(); };
@@ -2013,6 +2036,7 @@ document.getElementById('recCancelBtn').onclick=cancelRecording;
 let contextMsgData=null;
 function showContextMenu(e,m){ e.preventDefault(); contextMsgData=m; const menu=document.getElementById('contextMenu'); document.getElementById('ctxPinText').textContent=m.pinned?'Открепить':'Закрепить'; document.getElementById('ctxEdit').style.display=Number(m.from)===Number(me.id)?'flex':'none'; menu.style.left=e.clientX+'px'; menu.style.top=e.clientY+'px'; menu.classList.remove('hidden'); }
 document.addEventListener('click',()=>document.getElementById('contextMenu').classList.add('hidden'));
+document.addEventListener('mousemove',e=>{ const t=e.target.closest('button,.upload-btn'); if(!t) return; const r=t.getBoundingClientRect(); t.style.setProperty('--mx',Math.round(e.clientX-r.left)+'px'); t.style.setProperty('--my',Math.round(e.clientY-r.top)+'px'); });
 document.getElementById('ctxReply').onclick=()=>{ if(!contextMsgData) return; replyTo=contextMsgData; document.getElementById('replyIndicator').classList.remove('hidden'); document.getElementById('replyText').textContent=`Ответ: ${contextMsgData.text.slice(0,50)}`; document.getElementById('msgInput').focus(); };
 document.getElementById('ctxPin').onclick=async()=>{ if(!contextMsgData||!currentChat) return; const mq=query(collection(db,'chats',currentChat.id,'messages'),orderBy('ts','asc')); const snap=await getDocs(mq); for(const d of snap.docs){ await setDoc(doc(db,'chats',currentChat.id,'messages',d.id),{pinned:false},{merge:true}); } await setDoc(doc(db,'chats',currentChat.id,'messages',contextMsgData.id),{pinned:!contextMsgData.pinned},{merge:true}); };
 document.getElementById('ctxDelete').onclick=async()=>{ if(!contextMsgData||!currentChat) return; await deleteDoc(doc(db,'chats',currentChat.id,'messages',contextMsgData.id)); };
@@ -2032,8 +2056,11 @@ document.getElementById('composer').onsubmit=async e=>{
   e.preventDefault(); const input=document.getElementById('msgInput'), text=input.value.trim();
   if(sendLocked) return;
   if((!text&&!pendingImg&&!pendingVideo)||!currentChat) return;
-  if(!canSend()){ showToast(isPeerBlocked(currentChat)?'Пользователь заблокирован':'Только владелец может писать в этот канал','info'); return; }
+  if(!canSend()){ showToast(isPeerBlocked(currentChat)?'Пользователь заблокирован':'Только владелец может писать в этот чат','info'); return; }
   if(msgFloodBlocked()) return;
+  if(currentChat.type==='group'&&currentChat.noMedia&&(pendingImg||pendingVideo)){ showToast('В этой группе отключены фото и видео','info'); return; }
+  const smT=(currentChat.slowMode||0)*1000;
+  if(smT){ const w=((slowModeTs[currentChat.id]||0)+smT)-Date.now(); if(w>0){ showToast('Медленный режим: подождите '+Math.ceil(w/1000)+' сек','info'); return; } }
   const cid=currentChat.id, isAI=!!currentChat.isAI;
   const asChan=currentChat.type==='channel'&&me.channelAs&&me.channelAs[currentChat.id];
   playSendSound();
@@ -2059,6 +2086,7 @@ document.getElementById('composer').onsubmit=async e=>{
     await setDoc(doc(db,'chats',currentChat.id),{lastMessage:{text:text||(isVid?'🎬 Видео':'📷 Фото'),from:me.id,ts}},{merge:true});
     if(isAI&&text) aiBotReply(cid,text);
     dolphinTick(cid);
+    slowModeTs[cid]=Date.now();
   }catch(err){ input.value=text; setSendLock(false); showToast('Не удалось отправить сообщение','error'); }
 };
 
@@ -2755,6 +2783,7 @@ function renderExploreList(){
   const myId=Number(me.id);
   const list=document.getElementById('exploreList');
   const chats=allExploreCache.filter(c=>{
+    if(c.type==='group'&&c.public===false) return false;
     if(exploreCat&&c.cat!==exploreCat) return false;
     if(f){ const hay=((c.name||'')+' '+(c.desc||'')).toLowerCase(); if(!hay.includes(f)) return false; }
     return true;
@@ -2879,9 +2908,19 @@ function openChatSettings(){
   asSec.classList.toggle('hidden',currentChat.type!=='channel');
   document.getElementById('csAsChannel').checked=!!(me.channelAs&&me.channelAs[currentChat.id]);
   const permSec=document.getElementById('csPermSection');
-  permSec.classList.toggle('hidden',!(currentChat.type==='channel'&&isOwner));
+  permSec.classList.toggle('hidden',!(currentChat.type==='channel'||currentChat.type==='group')||!isOwner);
+  const permTitle=permSec.querySelector('h3');
+  if(permTitle) permTitle.textContent=currentChat.type==='group'?'ГРУППА · ПРАВА':'КАНАЛ · ПРАВА';
   const permInp=document.getElementById('csCanWrite');
   permInp.checked=currentChat.canWrite!=='owner';
+  const grpSec=document.getElementById('csGroupSection');
+  grpSec.classList.toggle('hidden',currentChat.type!=='group');
+  ['csSlowMode','csNoVoice','csNoMedia','csCategory','csPublic'].forEach(id=>{ const el=document.getElementById(id); if(el) el.disabled=!isOwner; });
+  document.getElementById('csSlowMode').value=String(currentChat.slowMode||0);
+  document.getElementById('csNoVoice').checked=!!currentChat.noVoice;
+  document.getElementById('csNoMedia').checked=!!currentChat.noMedia;
+  document.getElementById('csCategory').value=currentChat.category||'';
+  document.getElementById('csPublic').checked=!!currentChat.public;
   const addSec=document.getElementById('csAddMemberSection');
   addSec.classList.toggle('hidden',isPrivate||!isOwner);
   const members=document.getElementById('csMembers');
@@ -2935,9 +2974,16 @@ async function saveChatSettings(){
   if(!name){ showToast('Введите название','error'); return; }
   const upd={name,desc:document.getElementById('csDesc').value.trim().slice(0,200)};
   if(csTempImg) upd.avatarImg=csTempImg;
-  if(chatSettingsChat.type==='channel') upd.canWrite=document.getElementById('csCanWrite').checked?'all':'owner';
+  if(chatSettingsChat.type==='channel'||chatSettingsChat.type==='group') upd.canWrite=document.getElementById('csCanWrite').checked?'all':'owner';
+  if(chatSettingsChat.type==='group'){
+    upd.slowMode=Number(document.getElementById('csSlowMode').value)||0;
+    upd.noVoice=document.getElementById('csNoVoice').checked;
+    upd.noMedia=document.getElementById('csNoMedia').checked;
+    upd.category=document.getElementById('csCategory').value;
+    upd.public=document.getElementById('csPublic').checked;
+  }
   await setDoc(doc(db,'chats',chatSettingsChat.id),upd,{merge:true});
-  if(currentChat&&currentChat.id===chatSettingsChat.id){ currentChat.name=upd.name; currentChat.desc=upd.desc; currentChat.avatarImg=upd.avatarImg||currentChat.avatarImg; if(upd.canWrite) currentChat.canWrite=upd.canWrite; }
+  if(currentChat&&currentChat.id===chatSettingsChat.id){ currentChat.name=upd.name; currentChat.desc=upd.desc; currentChat.avatarImg=upd.avatarImg||currentChat.avatarImg; if(upd.canWrite) currentChat.canWrite=upd.canWrite; if(chatSettingsChat.type==='group'){ currentChat.slowMode=upd.slowMode; currentChat.noVoice=upd.noVoice; currentChat.noMedia=upd.noMedia; currentChat.category=upd.category; currentChat.public=upd.public; } }
   playSuccessSound(); showToast('Настройки сохранены','success');
   closeModal('chatSettingsModal');
   openChat(currentChat);
