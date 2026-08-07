@@ -40,7 +40,7 @@
   #antidebug .ad-title{font-size:22px;font-weight:700;letter-spacing:6px;color:#f87171;margin-bottom:10px;text-shadow:0 0 24px rgba(248,113,113,.6);}
   #antidebug .ad-sub{font-size:12px;letter-spacing:2px;color:rgba(255,255,255,.55);line-height:1.8;}
 
-  #app{position:relative;z-index:2;height:100vh;display:flex;}
+  #app{position:relative;z-index:2;height:100vh;height:100dvh;display:flex;}
   .sidebar{width:360px;display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);}
   .sb-head{padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);}
   .brand{flex:1;display:flex;align-items:center;justify-content:center;gap:9px;font-size:20px;font-weight:200;letter-spacing:8px;text-align:center;color:rgba(255,255,255,.85);text-shadow:0 0 12px rgba(255,255,255,.25);filter:blur(.2px);}
@@ -531,7 +531,7 @@
   @media (max-width:768px){
     body{cursor:auto;} #cursor{display:none;} #splash{cursor:auto;}
     .sidebar{width:100%;position:relative;z-index:3;}
-    .main{position:fixed;inset:0;z-index:5;display:none;}
+    .main{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100vh;height:100dvh;z-index:5;display:none;}
     .main.active{display:flex;}
     .back-btn{display:flex;}
     .brand{letter-spacing:5px;font-size:18px;}
@@ -634,7 +634,7 @@
   .sv-count{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:2px;color:rgba(255,255,255,.7);z-index:10;font-family:var(--mono);}
 
   @media (max-width:768px){
-    .main{display:flex;position:fixed;inset:0;z-index:5;transform:translateX(100%);opacity:0;pointer-events:none;}
+    .main{display:flex;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100vh;height:100dvh;z-index:5;transform:translateX(100%);opacity:0;pointer-events:none;}
     .main.active{transform:translateX(0);opacity:1;pointer-events:auto;}
     .status-bar{padding:8px 6px 4px;}
     .st-item{width:64px;} .st-ring{width:52px;height:52px;}
@@ -1427,6 +1427,15 @@ let unread={};
 let lastSeenMsg={};
 function saveMeLocal(){ if(!me) return; localStorage.setItem(LS_ME,JSON.stringify({id:me.id})); }
 
+function normUser(u){
+  if(!u) return u;
+  const o={...u};
+  if(o.name&&!o.nick) o.nick=o.name;
+  if(o.id!=null) o.id=Number(o.id);
+  Object.keys(o).forEach(k=>{ if(o[k]===undefined) delete o[k]; });
+  return o;
+}
+
 function getMyAccounts(){ try{ return JSON.parse(localStorage.getItem(LS_MY)||'[]'); }catch(e){ return []; } }
 function addMyAccount(id){ const arr=getMyAccounts(); if(!arr.includes(id)){ arr.push(id); localStorage.setItem(LS_MY, JSON.stringify(arr)); } }
 function pruneMyAccounts(){
@@ -1458,7 +1467,7 @@ const BG_PRESETS=[
 async function refreshUsersCache(){
   const snapshot=await getDocs(collection(db,'users'));
   allUsersCache={};
-  snapshot.forEach(d=>{ const data=d.data(); allUsersCache[d.id]={id:Number(data.id!=null?data.id:d.id),...data}; });
+  snapshot.forEach(d=>{ const data=d.data(); allUsersCache[d.id]=normUser({id:Number(data.id!=null?data.id:d.id),...data}); });
 allUsersCache[String(AI_BOT_ID)]={id:AI_BOT_ID,nick:'Sphere AI'};
   usersCacheT=Date.now();
 }
@@ -1531,10 +1540,9 @@ function gbBadge(){ return '<svg class="ver-badge" viewBox="0 0 24 24"><circle c
 function badgeFor(user){ return isVerified(user)?vBadge():(isGreyVerified(user)?gbBadge():''); }
 function badgeForChat(chat){ if(!chat) return ''; if(chat.type==='private') return badgeFor(allUsersCache[peerOf(chat)]); const u=allUsersCache[chat.createdBy]||{id:chat.createdBy}; return badgeFor(u); }
 function peerOf(chat){ const ms=(chat.members||[]).map(Number); const meId=Number(me&&me.id); return ms.find(m=>m!==meId)||null; }
-function normUser(user){ if(!user) return null; return {...user, id:Number(user.id!=null?user.id:user.id)}; }
 
 // ===== ВХОД =====
-async function initApp(){ await recomputeOld(); if(me){ me={...me,id:Number(me.id)}; const ds=await getDoc(doc(db,'users',me.id.toString())); if(ds.exists()){ me={...ds.data(),id:Number(ds.data().id!=null?ds.data().id:ds.id)}; saveMeLocal(); openApp(); } else { me=null; showLogin(); } } else showLogin(); }
+async function initApp(){ await recomputeOld(); if(me){ me=normUser({...me,id:Number(me.id)}); const ds=await getDoc(doc(db,'users',me.id.toString())); if(ds.exists()){ me=normUser({...ds.data(),id:Number(ds.data().id!=null?ds.data().id:ds.id)}); persistMe(); openApp(); } else { me=null; showLogin(); } } else showLogin(); }
 
 function showLogin(){ const m=document.getElementById('loginModal'); m.classList.remove('hidden'); requestAnimationFrame(()=>m.classList.add('show')); renderLoginList(); }
 
@@ -1548,7 +1556,7 @@ async function renderLoginList(){
   const content=document.getElementById('loginContent');
   let html='<div class="acct-list">';
   if(!mine.length){ html+='<div class="limit-note" style="margin-bottom:14px">На этом устройстве пока нет аккаунтов.<br>Создайте новый или войдите по ID.</div>'; }
-  mine.forEach(u=>{ const act=me&&me.id==u.id; html+=`<button class="acct-card${act?' active':''}"><div class="avatar" style="width:42px;height:42px;font-size:15px"></div><div class="acct-meta"><div class="acct-nick">${escapeHtml(u.nick)}</div><div class="acct-id">ID ${u.id}</div></div>${act?'<span class="acct-tag">АКТИВЕН</span>':''}</button>`; });
+  mine.forEach(u=>{ const act=me&&me.id==u.id; html+=`<button class="acct-card${act?' active':''}"><div class="avatar" style="width:42px;height:42px;font-size:15px"></div><div class="acct-meta"><div class="acct-nick">${escapeHtml(u.nick||u.name||'Без имени')}</div><div class="acct-id">ID ${u.id}</div></div>${act?'<span class="acct-tag">АКТИВЕН</span>':''}</button>`; });
   html+='</div>';
   const full=mine.length>=MAX_ACCOUNTS;
   if(full) html+=`<div class="limit-note" style="margin-bottom:10px">Максимум ${MAX_ACCOUNTS} аккаунта на устройство.<br>Удалите один, чтобы создать новый.</div>`;
@@ -1617,11 +1625,11 @@ function register(){
   const existing=new Set(Object.values(allUsersCache).map(u=>u.nick||'').filter(Boolean));
   let fn=nick,i=1; while(existing.has(fn)) fn=`${nick}${++i}`;
   const id=generateId();
-  hashPass(pw).then(h=>{
-    const newUser={id,nick:fn,password:h,createdAt:Date.now(),avatarImg:null,bgImg:null,onlineMs:0,frameChoice:'none',bgChoice:'pattern',mapVis:'friends',friends:[],status:''};
-    setDoc(doc(db,'users',id.toString()),newUser).catch(()=>{ if(me&&me.id===id) showToast('Ошибка сети при сохранении аккаунта','error'); });
+  hashPass(pw).then(async h=>{
+    const newUser=normUser({id,nick:fn,password:h,createdAt:Date.now(),avatarImg:null,bgImg:null,onlineMs:0,frameChoice:'none',bgChoice:'pattern',mapVis:'friends',friends:[],status:''});
+    try{ await setDoc(doc(db,'users',id.toString()),newUser); }catch(e){ showToast('Ошибка сети при сохранении аккаунта','error'); }
     addMyAccount(id);
-    me=newUser; saveMeLocal();
+    me=newUser; saveMeLocal(); persistMe();
     const lm=document.getElementById('loginModal'); lm.classList.remove('show'); setTimeout(()=>lm.classList.add('hidden'),300);
     openApp();
     showSuccessAnimation();
@@ -1630,7 +1638,7 @@ function register(){
   });
 }
 
-function persistMe(){ if(!me) return; setDoc(doc(db,'users',me.id.toString()),me,{merge:true}); saveMeLocal(); }
+function persistMe(){ if(!me) return; const clean=normUser(me); if(!clean.nick) clean.nick='Пользователь'; setDoc(doc(db,'users',me.id.toString()),clean,{merge:true}).catch(()=>{}); saveMeLocal(); }
 
 // ===== ПАРОЛЬ =====
 let passAction=null;
@@ -1642,6 +1650,7 @@ async function hashPass(s){
 }
 async function attemptLogin(u){
   if(!u) return;
+  u=normUser(u);
   if(u.password){
     showPassModal('ВВЕДИТЕ ПАРОЛЬ','Введите пароль для входа',async pw=>{
       if(await hashPass(pw)!==u.password) throw new Error('Неверный пароль');
@@ -1650,13 +1659,14 @@ async function attemptLogin(u){
   } else {
     showPassModal('ПРИДУМАЙТЕ ПАРОЛЬ','Создайте пароль для вашего аккаунта',async pw=>{
       u.password=await hashPass(pw);
-      await setDoc(doc(db,'users',u.id.toString()),{password:u.password},{merge:true});
+      const upd={password:u.password}; if(u.nick) upd.nick=u.nick;
+      await setDoc(doc(db,'users',u.id.toString()),upd,{merge:true});
       completeLogin(u);
     });
   }
 }
 function completeLogin(u){
-  me=u; saveMeLocal();
+  me=normUser(u); saveMeLocal(); persistMe();
   playSuccessSound(); closeModal('loginModal'); closeModal('passModal');
   setTimeout(openApp,250);
 }
@@ -1683,7 +1693,7 @@ document.getElementById('passModal').onclick=e=>{ if(e.target.id==='passModal'){
 
 function openApp(){
   document.getElementById('app').classList.remove('hidden');
-  document.getElementById('myNick').innerHTML=escapeHtml(me.nick)+badgeFor(me);
+  document.getElementById('myNick').innerHTML=escapeHtml(me.nick||me.name||'')+badgeFor(me);
   document.getElementById('myId').textContent='ID: '+me.id;
   renderAvatar(document.getElementById('myAvatar'),me);
   applyBackground(); renderList(); applySettings();
