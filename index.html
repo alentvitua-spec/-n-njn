@@ -1436,6 +1436,24 @@ function normUser(u){
   return o;
 }
 
+function recoverMeData(id){
+  try{
+    for(let v=17;v>=1;v--){
+      const old=JSON.parse(localStorage.getItem('sphere_me_v'+v)||'null');
+      if(old&&Number(old.id)===Number(id)){
+        const out={};
+        if(old.nick) out.nick=old.nick;
+        else if(old.name) out.nick=old.name;
+        if(old.avatarImg) out.avatarImg=old.avatarImg;
+        if(old.status) out.status=old.status;
+        if(old.bgImg) out.bgImg=old.bgImg;
+        if(out.nick||out.avatarImg) return out;
+      }
+    }
+  }catch(e){}
+  return null;
+}
+
 function getMyAccounts(){ try{ return JSON.parse(localStorage.getItem(LS_MY)||'[]'); }catch(e){ return []; } }
 function addMyAccount(id){ const arr=getMyAccounts(); if(!arr.includes(id)){ arr.push(id); localStorage.setItem(LS_MY, JSON.stringify(arr)); } }
 function pruneMyAccounts(){
@@ -1638,7 +1656,21 @@ function register(){
   });
 }
 
-function persistMe(){ if(!me) return; const clean=normUser(me); if(!clean.nick) clean.nick='Пользователь'; setDoc(doc(db,'users',me.id.toString()),clean,{merge:true}).catch(()=>{}); saveMeLocal(); }
+function persistMe(){
+  if(!me) return;
+  const clean=normUser(me);
+  if(!clean.nick||!clean.avatarImg){
+    const rec=recoverMeData(clean.id);
+    if(rec){
+      if(!clean.nick&&rec.nick) clean.nick=rec.nick;
+      if(!clean.avatarImg&&rec.avatarImg) clean.avatarImg=rec.avatarImg;
+      if(!clean.status&&rec.status) clean.status=rec.status;
+      if(!clean.bgImg&&rec.bgImg) clean.bgImg=rec.bgImg;
+    }
+  }
+  setDoc(doc(db,'users',me.id.toString()),clean,{merge:true}).catch(()=>{});
+  saveMeLocal();
+}
 
 // ===== ПАРОЛЬ =====
 let passAction=null;
@@ -1693,7 +1725,7 @@ document.getElementById('passModal').onclick=e=>{ if(e.target.id==='passModal'){
 
 function openApp(){
   document.getElementById('app').classList.remove('hidden');
-  document.getElementById('myNick').innerHTML=escapeHtml(me.nick||me.name||'')+badgeFor(me);
+  document.getElementById('myNick').innerHTML=escapeHtml(me.nick||me.name||'Без имени')+badgeFor(me);
   document.getElementById('myId').textContent='ID: '+me.id;
   renderAvatar(document.getElementById('myAvatar'),me);
   applyBackground(); renderList(); applySettings();
